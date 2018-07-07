@@ -1,0 +1,12 @@
+#HeadingDiv{
+    width : 100%;
+    background: orange;
+    height: 50px;
+
+}
+
+#FileContainer{
+    padding : 100px;
+    width : 100%;
+    /* background : yellow; */
+}

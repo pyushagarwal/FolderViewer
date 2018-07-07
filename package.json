@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "folder_viewer",
+  "version": "1.0.0",
+  "description": "This application is used to view and modify contents of a directory",
+  "main": "server.js",
+  "devDependencies": {
+    "grunt": "^1.0.3",
+    "grunt-bower-task": "^0.5.0"
+  },
+  "dependencies": {
+    "eslint": "^5.0.1",
+    "express": "^4.16.3",
+    "morgan": "^1.9.0"
+  },
+  "author": "Piyush Agarwal",
+  "license": "ISC"
+}

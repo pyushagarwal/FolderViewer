@@ -8,5 +8,6 @@
 #FileContainer{
     padding : 100px;
     width : 100%;
+    font-family: sans-serif;
     /* background : yellow; */
 }

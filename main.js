@@ -12,9 +12,9 @@ requirejs.config({
             deps:[],
             exports:['Jquery','$']
         },
-        'bbgrid': {
-            deps: ['backbone'],
-            exports: 'bbGrid'
+        backgrid: {
+            deps: ['backbone', 'jquery', 'underscore'],
+            exports: 'backGrid'
         },
     },
     paths:{
@@ -22,7 +22,8 @@ requirejs.config({
         'jquery':'Vendor/Scripts/jquery',
         'underscore':'Vendor/Scripts/underscore',
         "text":"Vendor/Scripts/text",
-        "bbgrid":"Vendor/Scripts/bbGrid"
+        "backgrid":"Vendor/Scripts/backgrid",
+        "moment": "Vendor/Scripts/moment"
     }
 });
 

@@ -16,6 +16,10 @@ requirejs.config({
             deps: ['backbone', 'jquery', 'underscore'],
             exports: 'backGrid'
         },
+        "backgrid-select-all":{
+            deps: ['backbone'],
+            export : ['BackgridSelectAll']
+        }
     },
     paths:{
         'backbone':'Vendor/Scripts/backbone',
@@ -23,7 +27,8 @@ requirejs.config({
         'underscore':'Vendor/Scripts/underscore',
         "text":"Vendor/Scripts/text",
         "backgrid":"Vendor/Scripts/backgrid",
-        "moment": "Vendor/Scripts/moment"
+        "moment": "Vendor/Scripts/moment",
+        "backgrid-select-all": "Vendor/Scripts/backgrid-select-all"
     }
 });
 

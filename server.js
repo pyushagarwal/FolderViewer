@@ -29,15 +29,22 @@ app.get('/api*',function(req, res, next){
           var response = [];
 
           files.forEach(function(file_name){
-            response.push({
+            var filePath = path.join(fullFilePath, file_name);
+            try{
+              var mtime = fs.statSync(path.join(fullFilePath, file_name)).mtime;
+              response.push({
                 file_name : file_name,
-                mtime : fs.statSync(path.join(PUBLIC_DIR, filePath, files[0])).mtime
-            });
+                mtime : mtime
+              });
+            }
+            catch(error){
+              console.log(error);
+            }
+            
           });
 
           res.status(200).send(response);
-          
-        //   console.log(fs.statSync(path.join(PUBLIC_DIR, filePath, files[0])));
+
       }
     });
 })

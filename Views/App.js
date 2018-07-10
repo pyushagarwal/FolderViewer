@@ -2,13 +2,14 @@ define(['backbone',
         'text!Templates/FileContainerTemplate.html', 
         'backgrid',
         '../Collection/FileCollection',
-        'moment' 
+        'moment'
     ], 
     function(Backbone,
             FileContainerTemplate, 
             BackGrid, 
             FileCollection,
-            Moment){
+            Moment
+        ){
     
     return Backbone.View.extend({
         el : "#FileContainer",
@@ -22,16 +23,7 @@ define(['backbone',
 
         createGrid : function(){
             var columns = [
-              {
-                name: "",
-
-                // Backgrid.Extension.SelectRowCell lets you select individual rows
-                cell: "select-row",
-            
-                // Backgrid.Extension.SelectAllHeaderCell lets you select all the row on a page
-                headerCell: "select-all",   
-
-              }, {
+            {
                 name: "id", // The key of the model attribute
                 label: "ID", // The name to display in the header
                 sortType: "toggle",
@@ -82,21 +74,63 @@ define(['backbone',
                 }),
                 editable: false
                 
-              }];
+              },
+              {
+                name: "", // The key of the model attribute
+                label: "", // The name to display in the header
+                editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
+                // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
+                cell: Backbone.View.extend({
+                    tagName : "td",
+                    render : function(){
+                        this.$el.html();
+                        return this;
+                    },
+
+                    events :{
+                        "click" : "onClick",
+                        // "mouseenter": "onMouseEnter",
+                        // "mouseout": "onMouseOut"
+                    },
+
+                    onClick : function(e){
+                        console.log("todod clicked");
+                        e.stopPropagation();
+                    },
+
+                    onMouseEnter : function(e){
+                        e.stopPropagation();
+                        console.log("mouse enetres");
+                        this.$el.css("color", "blue");
+                    },
+
+                    onMouseOut: function(e){
+                        this.$el.css("color","");
+                    }
+                })
+                
+            }];
             
             this.grid = new BackGrid.Grid({
-                className : 'table table-bordered table-hover',
+                className : 'table table-hover',
                 columns : columns,
                 collection : this.fileCollection,
                 row : BackGrid.Row.extend({
                     events : {
-                        mouseover : "onMouseOver",
+                        mouseenter : "onMouseEnter",
+                        mouseout : "onMouseOut",
                         click : "onClick"
                     },
 
-                    onMouseOver(e){
-                        e.preventDefault();
-                        this.$el.css('cursor','pointer'); 
+                    onMouseEnter(e){
+                        this.$el.css('cursor','pointer');
+                        this.cells[this.cells.length-1].$el.html('<i class="fas fa-bars"></i>');
+                        console.log(this);
+                    },
+
+                    onMouseOut(e){
+                        this.$el.css('cursor','');
+                        this.cells[this.cells.length-1].$el.html('');
                     },
 
                     onClick(e){

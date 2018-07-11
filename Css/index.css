@@ -11,3 +11,10 @@
     font-family: sans-serif;
     /* background : yellow; */
 }
+
+.barDropDown{
+    z-index: 2;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}

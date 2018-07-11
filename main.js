@@ -36,6 +36,7 @@ require(['backbone','underscore',"jquery"], function(Backbone, _, $){
     event_bus = _({}).extend(Backbone.Events);
     window.event_bus = event_bus;
     window.$ = $;
+    window._ = _;
 });
 
 require(['backbone','./Router/router', './Views/App'],

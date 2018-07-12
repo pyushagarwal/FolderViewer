@@ -1,15 +1,16 @@
 define(['backbone',
-        'Views/BarDropDownView'
+        'backgrid',
+        'text!Templates/BarDropDownTemplate.html'
     ],
     function(Backbone,
-        BarDropDownView
+        Backgrid,
+        BarDropDownTemplate
     ){
-        return Backbone.View.extend({
+        return Backgrid.Cell.extend({
             
             tagName : "td",
 
             render : function(){
-                this.$el.html();
                 return this;
             },
 
@@ -21,10 +22,14 @@ define(['backbone',
 
             onClick : function(e){
                 e.stopPropagation();
-                console.log("tododo clicked");
-                this.barDropDownView = new BarDropDownView();
-                this.barDropDownView.render(this.$el);
-
+                if(e.target.dataset.action == "rename"){
+                    this.$el.find(".dropdown-menu").css("display", 'none');
+                    this.rowView.cells[2].enterEditMode();
+                    console.log(this);
+                }
+                else{
+                    this.$el.find(".dropdown-menu").css("display", 'block');
+                }
             },
 
             onMouseEnter: function(e){
@@ -33,6 +38,10 @@ define(['backbone',
 
             onMouseLeave: function(e){
                 this.$el.css("color","");
+            },
+
+            setRowViewObject : function(rowView){
+                this.rowView = rowView;
             }
         });
 });

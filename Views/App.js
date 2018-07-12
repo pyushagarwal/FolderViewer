@@ -3,14 +3,16 @@ define(['backbone',
         'backgrid',
         '../Collection/FileCollection',        
         'Views/BarIconView',
-        'moment'
+        'moment',
+        'text!Templates/BarDropDownTemplate.html'
     ], 
     function(Backbone,
             FileContainerTemplate, 
             BackGrid, 
             FileCollection,
             BarIconView,
-            Moment
+            Moment,
+            BarDropDownTemplate
         ){
     
     return Backbone.View.extend({
@@ -34,18 +36,16 @@ define(['backbone',
                 cell: Backgrid.IntegerCell.extend({
                   orderSeparator: ''
                 })
-              }, {
-                name: "file_name",
-                label: "Name",
-                sortType: "toggle",
-                // The cell type can be a reference of a Backgrid.Cell subclass, any Backgrid.Cell subclass instances like *id* above, or a string
-                cell: Backgrid.Cell.extend({
+              },
+              {
+                name: "", // The key of the model attribute
+                label: "", // The name to display in the header
+                editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
+                // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
+                cell: Backbone.View.extend({
+                    tagName : "td",
 
-                    /*
-                    returns Backgrid.Cell
-                    */
                     render : function(){
-                        
                         var html = '';
                         if (this.model.get('file_type') === ''){
                             html = '<i class="fas fa-folder"></i>'
@@ -53,14 +53,28 @@ define(['backbone',
                         else{
                             html = '<i class="far fa-file-alt"></i>'
                         }
-                        
-                        html += '  ' +this.model.get('file_name');
-
                         this.$el.html(html);
                         return this
                     }
+                })
+              }, {
+                name: "file_name",
+                label: "Name",
+                sortType: "toggle",
+                // The cell type can be a reference of a Backgrid.Cell subclass, any Backgrid.Cell subclass instances like *id* above, or a string
+                cell: Backgrid.Cell.extend({
+                    events: {
+                        'click' : "onClick"
+                    },
+
+                    onClick(e){
+                        e.stopPropagation();
+                        console.log("cell Name clicked");
+                        // this.enterEditMode();
+                    }
+
                 }), // This is converted to "StringCell" and a corresponding class in the Backgrid package namespace is looked up
-                editable: false
+                editable: true
               }, {
                 name: "mtime",
                 label: "Date Modified",
@@ -98,18 +112,19 @@ define(['backbone',
                     },
 
                     onMouseEnter(e){
-                        console.log('mouseenter triggered');
+                        // console.log('mouseenter triggered');
 
                         //change the cursor to a pointer
                         this.$el.css('cursor','pointer');
                         
                         //add a bar font;
-                        this.cells[this.cells.length-1].$el.html('<i class="fas fa-bars"></i>');
-                        console.log(this);
+                        this.cells[this.cells.length-1].setRowViewObject(this);
+                        this.cells[this.cells.length-1].$el.html(_.template(BarDropDownTemplate));
+                        // console.log(this);
                     },
 
                     onMouseLeave(e){
-                        console.log('mouseleave triggered');
+                        // console.log('mouseleave triggered');
                         this.$el.css('cursor','');
                         this.cells[this.cells.length-1].$el.html('');
                     },
@@ -123,7 +138,7 @@ define(['backbone',
             this.$el.append(this.grid.render().el);
             // this.$el.find('table').attr('class', 'table');
 
-            console.log(this);
+            // console.log(this);
 
 
         }

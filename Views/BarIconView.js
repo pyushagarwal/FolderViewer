@@ -21,11 +21,12 @@ define(['backbone',
             },
 
             onClick : function(e){
+                console.log("onclick")
                 e.stopPropagation();
                 if(e.target.dataset.action == "rename"){
                     this.$el.find(".dropdown-menu").css("display", 'none');
+                    this.rowView.cells[2].scrollY = window.scrollY;
                     this.rowView.cells[2].enterEditMode();
-                    console.log(this);
                 }
                 else{
                     this.$el.find(".dropdown-menu").css("display", 'block');

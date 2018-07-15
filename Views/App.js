@@ -1,27 +1,32 @@
-define(['backbone',
-        'text!Templates/FileContainerTemplate.html', 
+define(['backbone', 
         'backgrid',
+        'Views/BackgridRow',
         '../Collection/FileCollection',        
         'Views/BarIconView',
-        'moment',
-        'text!Templates/BarDropDownTemplate.html'
+        'moment'
     ], 
-    function(Backbone,
-            FileContainerTemplate, 
-            BackGrid, 
+    function(Backbone, 
+            BackGrid,
+            BackgridRow,
             FileCollection,
             BarIconView,
-            Moment,
-            BarDropDownTemplate
+            Moment
         ){
     
     return Backbone.View.extend({
         el : "#FileContainer",
         
+        /*custom variables*/
+
+        getApiUrl : function(){
+            return this.API_URL;
+        },
+
         initialize : function(){
+            
+            this.API_URL = '/api',
             this.grid = null;
             this.fileCollection = new FileCollection();
-
             this.createGrid();
         },
 
@@ -47,7 +52,7 @@ define(['backbone',
 
                     render : function(){
                         var html = '';
-                        if (this.model.get('file_type') === ''){
+                        if (this.model.getFileExtension() === ''){
                             html = '<i class="fas fa-folder"></i>'
                         }
                         else{
@@ -64,13 +69,11 @@ define(['backbone',
                 // The cell type can be a reference of a Backgrid.Cell subclass, any Backgrid.Cell subclass instances like *id* above, or a string
                 cell: Backgrid.Cell.extend({
                     events: {
-                        'click' : "onClick"
+                        'click': 'onClick'
                     },
 
                     onClick(e){
-                        e.stopPropagation();
-                        console.log("cell Name clicked");
-                        // this.enterEditMode();
+                        // stop the default behaviour of Cell class to enter editmode on clicking;
                     }
 
                 }), // This is converted to "StringCell" and a corresponding class in the Backgrid package namespace is looked up
@@ -104,42 +107,10 @@ define(['backbone',
                 className : 'table table-hover',
                 columns : columns,
                 collection : this.fileCollection,
-                row : BackGrid.Row.extend({
-                    events : {
-                        mouseleave : "onMouseLeave",
-                        mouseenter : "onMouseEnter",
-                        click : "onClick"
-                    },
-
-                    onMouseEnter(e){
-                        // console.log('mouseenter triggered');
-
-                        //change the cursor to a pointer
-                        this.$el.css('cursor','pointer');
-                        
-                        //add a bar font;
-                        this.cells[this.cells.length-1].setRowViewObject(this);
-                        this.cells[this.cells.length-1].$el.html(_.template(BarDropDownTemplate));
-                        // console.log(this);
-                    },
-
-                    onMouseLeave(e){
-                        // console.log('mouseleave triggered');
-                        this.$el.css('cursor','');
-                        this.cells[this.cells.length-1].$el.html('');
-                    },
-
-                    onClick(e){
-                        this.model.collection.resetFileCollection(this.model);
-                    }
-                })
+                row : BackgridRow
             });
 
             this.$el.append(this.grid.render().el);
-            // this.$el.find('table').attr('class', 'table');
-
-            // console.log(this);
-
 
         }
     })

@@ -914,7 +914,7 @@ var Cell = Backgrid.Cell = Backbone.View.extend({
      unable to convert the current user input to an apprpriate value for the
      model's column, and an `error` CSS class is added to the cell accordingly.
   */
-  enterEditMode: function () {
+ enterEditMode: function () {
     var model = this.model;
     var column = this.column;
 

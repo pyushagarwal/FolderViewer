@@ -33,7 +33,9 @@ function(
             if(e.target.tagName === "INPUT"){
                 e.stopPropagation();
             }else{
-                this.model.collection.resetFileCollection(this.model);
+                if (!this.model.hasFileExtension()){
+                    this.model.collection.resetFileCollection(this.model);
+                }
             }
         }
     });

@@ -13,7 +13,10 @@
   "dependencies": {
     "eslint": "^5.0.1",
     "express": "^4.16.3",
-    "morgan": "^1.9.0"
+    "morgan": "^1.9.0",
+    "passport": "^0.4.0",
+    "passport-http": "^0.3.0",
+    "passport-local": "^1.0.0"
   },
   "author": "Piyush Agarwal",
   "license": "ISC"

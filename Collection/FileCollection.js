@@ -10,7 +10,9 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         
         fetchData : function(url){
             this.url = url
-            this.fetch()
+            this.fetch().fail(function(){
+                console.log(arguments);
+            });
         },
 
         initialize : function(){

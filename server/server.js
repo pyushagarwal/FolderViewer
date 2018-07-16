@@ -1,4 +1,6 @@
 const express = require('express');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 const morgan = require('morgan');
 const app = express();
 const fs = require("fs");

@@ -52,11 +52,11 @@ define(['backbone',
 
                     render : function(){
                         var html = '';
-                        if (this.model.getFileExtension() === ''){
-                            html = '<i class="fas fa-folder"></i>'
+                        if (this.model.hasFileExtension()){
+                            html = '<i class="far fa-file-alt"></i>'
                         }
                         else{
-                            html = '<i class="far fa-file-alt"></i>'
+                            html = '<i class="fas fa-folder"></i>'
                         }
                         this.$el.html(html);
                         return this

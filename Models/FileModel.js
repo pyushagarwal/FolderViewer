@@ -6,12 +6,18 @@ define(["backbone",
         
         initialize : function(){
             this.on("backgrid:edited", this.fileRenamed);
-            this.on("backgrid:editing", this.editMode)
+            // this.on("backgrid:editing", this.editMode)
         },
         
-        getFileExtension : function (filename) {
+        hasFileExtension : function (filename) {
             var filename = this.get("file_name");
-            return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+            var fileExtension =  filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+            if(fileExtension){
+                return true;
+            }
+            else{
+                return false;   
+            }
         },
 
         fileRenamed: function(model, backgridRow){
@@ -28,13 +34,6 @@ define(["backbone",
             .fail(_.bind(function(){
                 this.set('file_name', this.previous('file_name')); 
             }, this));
-        },
-
-        editMode: function(){
-            backGridCell = arguments[2];
-            console.log(backGridCell.scrollY);
-            window.scrollTo(0, 600);
-            console.log("hello");
         }
     })
 });

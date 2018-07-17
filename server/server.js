@@ -1,20 +1,48 @@
 const express = require('express');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
 const morgan = require('morgan');
-const app = express();
 const fs = require("fs");
 const path = require("path");
 const errorMessage = require("./errorMessage");
+
+
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const mongo = require('mongo');
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb://localhost/folderViewer", function(err, res){
+  if(err){
+    console.log("Error occured while connecting to mongo");
+  }
+  else{
+    console.log(`mongodb connected on host=${res.host} and port=${res.port}`);
+  }
+});
 
 //config 
 const PORT = 4001;
 // const PUBLIC_DIR = "D://";
 const PUBLIC_DIR = "/media/piyush/33F777F756F64209/docs/documents/nodejs/FolderViewer/DataDirectory";
 
+
+const app = express();
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use('/home', express.static('./'));
+
+app.use(cookieParser());
+
+app.use(session({
+  secret: 'secret',
+  saveUninitialized: true,
+  resave: true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/api*',function(req, res, next){
     var filePath = req.params[0];

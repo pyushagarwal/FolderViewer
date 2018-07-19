@@ -44,6 +44,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use('/api', require('./routes/user'));
+
 app.get('/api*',function(req, res, next){
     var filePath = req.params[0];
 

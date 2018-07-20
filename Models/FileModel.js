@@ -2,7 +2,7 @@ define(["backbone",
         "Utils/common"], function(Backbone, Common){
     return Backbone.Model.extend({
         idAttribute : 'id',
-        url : "",
+        url : "/api/file",
         
         initialize : function(){
             this.on("backgrid:edited", this.fileRenamed);

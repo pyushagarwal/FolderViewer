@@ -4,7 +4,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         url : "/this is not used",
 
         //This can be placed in CONFIG
-        API: "/api",
+        API: "/api/file",
 
         currentId : 1,
         

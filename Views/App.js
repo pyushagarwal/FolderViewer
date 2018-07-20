@@ -24,7 +24,7 @@ define(['backbone',
 
         initialize : function(){
             
-            this.API_URL = '/api',
+            this.API_URL = '/api/file',
             this.grid = null;
             this.fileCollection = new FileCollection();
             this.createGrid();

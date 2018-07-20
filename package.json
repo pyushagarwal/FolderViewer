@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node server.js"
+    "start": "node server/server.js"
   },
   "name": "folder_viewer",
   "version": "1.0.0",
@@ -24,5 +24,13 @@
     "passport-local": "^1.0.0"
   },
   "author": "Piyush Agarwal",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pyushagarwal/FolderViewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pyushagarwal/FolderViewer/issues"
+  },
+  "homepage": "https://github.com/pyushagarwal/FolderViewer#readme"
 }

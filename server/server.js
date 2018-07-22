@@ -23,19 +23,32 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use('/home', express.static('./client'));
 
-app.use(cookieParser());
+/*
+The below lines must be invoked serially
+*/
 
+app.use(cookieParser());
 app.use(session({
   secret: 'secret',
   saveUninitialized: true,
   resave: true
 }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/api/user', require('./routes/user'));
+
+var isAuthenticated = function(req, res, next){
+  if(req.isAuthenticated && req.isAuthenticated()){
+    next(null);
+  }else{
+    res.status(401).send({"message " : "unauthorized"});
+  }
+}
+
+app.use('/api/auth', require('./routes/auth'));
+
+app.use('/api/user', isAuthenticated, require('./routes/user'));
 app.use('/api/file', require('./routes/folder'));
-app.use('/auth', require('./routes/auth'));
+
 
 app.listen(PORT, () => console.log("server started on port " + PORT));

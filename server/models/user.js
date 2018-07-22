@@ -26,6 +26,24 @@ userSchema.pre('save', function(callback){
     });
 });
 
+userSchema.methods.verifyPassword = function(incomingPassword, done){
+    console.log('Inside verifyPassword in user model');
+
+    var user = this;
+    
+    bcrypt.compare(incomingPassword, this.password, function(err, isPasswordCorrect) {
+        if(err){
+            return done(err);
+        }
+        if(isPasswordCorrect){
+            done(null, user, { message: 'Incorret password.'});
+        }
+        else{
+            done(null, false);
+        }
+
+    });
+}
 
 module.exports = mongoose.model('User', userSchema);
 

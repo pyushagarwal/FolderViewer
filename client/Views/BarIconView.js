@@ -35,6 +35,7 @@ define(['backbone',
 
             onMouseEnter: function(e){
                 this.$el.css("color", "blue");
+                this.$el.css("cursor", "pointer");
             },
 
             onMouseLeave: function(e){

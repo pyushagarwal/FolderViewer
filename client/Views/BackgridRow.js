@@ -12,11 +12,13 @@ function(
         },
 
         onMouseEnter(e){
-            // console.log('mouseenter triggered');
-
             //change the cursor to a pointer
-            this.$el.css('cursor','pointer');
-            
+            if(!this.model.isAFile()){
+                this.$el.css('cursor','pointer');
+            }
+            else{
+                this.$el.css('cursor','default');
+            }
             //add a bar font;
             this.cells[this.cells.length-1].setRowViewObject(this);
             this.cells[this.cells.length-1].$el.html(_.template(BarDropDownTemplate));
@@ -33,8 +35,8 @@ function(
             if(e.target.tagName === "INPUT"){
                 e.stopPropagation();
             }else{
-                if (!this.model.hasFileExtension()){
-                    this.model.collection.resetFileCollection(this.model);
+                if (!this.model.isAFile()){
+                    this.model.collection.fetchFolderContents(this.model);
                 }
             }
         }

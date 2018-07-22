@@ -52,7 +52,7 @@ define(['backbone',
 
                     render : function(){
                         var html = '';
-                        if (this.model.hasFileExtension()){
+                        if (this.model.isAFile()){
                             html = '<i class="far fa-file-alt"></i>'
                         }
                         else{

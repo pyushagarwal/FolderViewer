@@ -1,24 +1,38 @@
 var passport = require('passport');
-var BasicStrategy = require('passport-http').BasicStrategy;
+var LocalStrategy = require('passport-local').Strategy;
 var User = require('../models/user');
+var express = require('express');
+var router = express.Router();
 
-passport.use(new BasicStrategy(function(username, password, callback){
-    User.findOne({username : username}, function(err, user){
-        if(err){
-            return callback(err);
-        }
-        user.verifyPassword(password, function(err, isMatch){
+
+passport.use(new LocalStrategy({
+        usernameField : 'email'
+    },
+    function(email, password, done){
+        User.findOne({email : email}, function(err, user){
             if(err){
-                return callback(err);
+                return done(err);
             }
-            else if(isMatch)
-                return callback(null,user)
-            else
-                return callback(null,false);
-        })
-    });
-    
+
+            if(!user){
+                return(null, false, { message: 'Incorrect username.' });
+            }
+
+            done(null, user);
+        });
 }));
 
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
 
-module.exports.isAuthenticated = passport.authenticate('basic', {session : false });
+passport.deserializeUser(function(id, done) {
+    done(err, user);
+});
+
+router.post('/login', passport.authenticate('local'), function(user, res, next){
+        console.log(Object.keys(user));
+    } 
+);
+
+module.exports = router;

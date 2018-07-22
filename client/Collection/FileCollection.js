@@ -2,9 +2,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
     return Backbone.Collection.extend({
         model : FileModel,
         url : "/this is not used",
-
         //This can be placed in CONFIG
-        API: "/api/file",
 
         currentId : 1,
         
@@ -16,7 +14,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         },
 
         initialize : function(){
-            this.listenTo(window.event_bus, "resetFileCollection", this.resetFileCollection);
+            this.listenTo(window.event_bus, "fetchFolderContents", this.fetchFolderContents);
             this.on("add", this.setIdInModel)
         },
 
@@ -36,7 +34,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         /*
         params: FolderNameWhichWasClicked , type = Model
         */
-        resetFileCollection : function(FolderNameWhichWasClicked){
+        fetchFolderContents : function(FolderNameWhichWasClicked){
             this.currentId = 1;
             if(FolderNameWhichWasClicked){
                 var file_name = FolderNameWhichWasClicked.get('file_name');
@@ -48,7 +46,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
             */
             router.navigate(newUrl, {trigger: false});
             
-            var newUrl = this.createURL(this.API, newUrl);
+            var newUrl = this.createURL(app.getApiUrl(), newUrl);
             this.reset()
             this.fetchData(newUrl);
         }

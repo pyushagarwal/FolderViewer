@@ -9,7 +9,7 @@ define(["backbone",
             // this.on("backgrid:editing", this.editMode)
         },
         
-        hasFileExtension : function (filename) {
+        isAFile : function (filename) {
             var filename = this.get("file_name");
             var fileExtension =  filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
             if(fileExtension){

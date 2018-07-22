@@ -21,7 +21,7 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(express.json());
-app.use('/home', express.static('./'));
+app.use('/home', express.static('./client'));
 
 app.use(cookieParser());
 
@@ -36,6 +36,6 @@ app.use(passport.session());
 
 app.use('/api/user', require('./routes/user'));
 app.use('/api/file', require('./routes/folder'));
-// app.use('/', require('./routes/auth'));
+app.use('/auth', require('./routes/auth'));
 
 app.listen(PORT, () => console.log("server started on port " + PORT));

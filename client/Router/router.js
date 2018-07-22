@@ -8,7 +8,7 @@ define(['backbone'], function(Backbone){
 
         home : function(){
             console.log("rendering home")
-            window.event_bus.trigger('resetFileCollection', null);
+            window.event_bus.trigger('fetchFolderContents', null);
         }
     });
 });

@@ -25,7 +25,8 @@
     "bbgrid": "https://github.com/direct-fuel-injection/bbGrid.git#0.9.1pre",
     "moment": "^2.22.2",
     "components-font-awesome": "^5.0.6",
-    "backgrid-select-all": "^0.3.5"
+    "backgrid-select-all": "^0.3.5",
+    "backbone-forms": "^0.14.1"
   },
   "exportsOverride": {
     "bootstrap": {
@@ -38,6 +39,11 @@
     "backgrid": {
       "main": [
         "lib/backgrid.css"
+      ]
+    },
+    "backbone-forms":{
+      "main": [
+        "distribution.amd/backbone-forms.js"
       ]
     }
   },

@@ -22,13 +22,13 @@ requirejs.config({
         }
     },
     paths:{
-        'backbone':'Vendor/Scripts/backbone',
-        'jquery':'Vendor/Scripts/jquery',
-        'underscore':'Vendor/Scripts/underscore',
-        "text":"Vendor/Scripts/text",
-        "backgrid":"Vendor/Scripts/backgrid",
-        "moment": "Vendor/Scripts/moment",
-        "backgrid-select-all": "Vendor/Scripts/backgrid-select-all"
+        'backbone':'../Vendor/Scripts/backbone',
+        'jquery':'../Vendor/Scripts/jquery',
+        'underscore':'../Vendor/Scripts/underscore',
+        "text":"../Vendor/Scripts/text",
+        "backgrid":"../Vendor/Scripts/backgrid",
+        "moment": "../Vendor/Scripts/moment",
+        "backgrid-select-all": "../Vendor/Scripts/backgrid-select-all"
     }
 });
 

@@ -21,8 +21,6 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(express.json());
-app.use('/home', express.static('./client'));
-
 /*
 The below lines must be invoked serially
 */
@@ -44,6 +42,8 @@ var isAuthenticated = function(req, res, next){
     res.status(401).send({"message " : "unauthorized"});
   }
 }
+
+app.use('/', express.static('./client'));
 
 app.use('/api/auth', require('./routes/auth'));
 

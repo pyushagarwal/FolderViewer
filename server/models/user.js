@@ -36,10 +36,10 @@ userSchema.methods.verifyPassword = function(incomingPassword, done){
             return done(err);
         }
         if(isPasswordCorrect){
-            done(null, user, { message: 'Incorret password.'});
+            done(null, user);
         }
         else{
-            done(null, false);
+            done(null, false, { error: 'The password entered is incorrect'});
         }
 
     });

@@ -23,13 +23,7 @@ function(Backbone,
                 },
 
                 login: function(){
-                    Backbone.sync("create", this)
-                    .then(function(res){
-                        console.log(res);
-                    })
-                    .fail(function(e){
-                        console.log(e);
-                    })
+                    return Backbone.sync("create", this)
                 }
             });
             

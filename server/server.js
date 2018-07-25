@@ -25,7 +25,7 @@ app.use(express.json());
 The below lines must be invoked serially
 */
 
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(session({
   secret: 'secret',
   saveUninitialized: true,
@@ -39,7 +39,7 @@ var isAuthenticated = function(req, res, next){
   if(req.isAuthenticated && req.isAuthenticated()){
     next(null);
   }else{
-    res.status(401).send({"message " : "unauthorized"});
+    res.status(401).send({});
   }
 }
 

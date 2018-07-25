@@ -24,7 +24,13 @@ define(['backbone',
                     this.renderErrorMesssage(error);
                 }
                 else{
-                    this.model.login();
+                    this.model.login()
+                    .then(function(res){
+                        window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
+                    })
+                    .fail(_.bind(function(res){
+                        this.renderErrorMesssage(res.responseJSON);
+                    }, this))
                 }
             },
 
@@ -32,6 +38,13 @@ define(['backbone',
 
                 var $formEl = this.$el;
                 $formEl.find(".invalid-feedback").remove();
+
+                if(error.error){
+                    var $dataEditorDiv =  $formEl.find(`[data-editors]`)
+                    $($dataEditorDiv[1]).append(`<div class="invalid-feedback">${error.error}</div>`)
+                    .find('input')
+                    .addClass("is-invalid");
+                }
 
                 Object.keys(error).forEach(function(key){
                      var dataEditorDiv =  $formEl.find(`[data-editors=${key}]`)

@@ -29,6 +29,8 @@ requirejs.config({
 require(['backbone','underscore',"jquery", './Views/LoginView'],
 function(Backbone, _, $, LoginView){
     event_bus = _({}).extend(Backbone.Events);
+    window._ = _;
+    window.$ = $;
     var loginView = new LoginView();
     loginView.render();
     Backbone.history.start();

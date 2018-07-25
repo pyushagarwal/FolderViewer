@@ -16,9 +16,8 @@ passport.use(new LocalStrategy({
             }
 
             if(!user){
-                return(null, false, { message: 'Incorrect username.' });
+                return done(null, false, { error: 'The account does not exists'});
             }
-
 
             console.log(`user found in database ${user.email}`);
             user.verifyPassword(password, done);
@@ -46,7 +45,7 @@ router.post('/login', function(req, res, next){
         if(err){
             return res.status(500).json(err);
         }
-
+        console.log(arguments);
         if(!user){
             return res.status(401).json(info);
         }

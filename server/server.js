@@ -47,7 +47,7 @@ app.use('/', express.static('./client'));
 
 app.use('/api/auth', require('./routes/auth'));
 
-app.use('/api/user', isAuthenticated, require('./routes/user'));
+app.use('/api/user', require('./routes/user'));
 app.use('/api/file', require('./routes/folder'));
 
 

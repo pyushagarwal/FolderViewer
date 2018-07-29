@@ -1,0 +1,47 @@
+.main-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height:100%;
+}
+.main-container > h1{
+    width: 250px;
+}
+#body-container{
+    width:100%;
+    height: inherit;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+#central-container{
+    padding: 10px;
+    border-radius: 5%;
+    height:450px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+}
+#toggle-form{
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    /* justify-content: space-around; */
+}
+#toggle-form > button{
+    flex-grow: 1;
+    margin: 5px;
+}
+
+.form-view{
+    flex-grow: 9;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.hidden{
+    display: None;
+}
+

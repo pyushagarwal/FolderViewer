@@ -26,13 +26,13 @@ requirejs.config({
     }
 });
 
-require(['backbone','underscore',"jquery", './Views/LoginView'],
-function(Backbone, _, $, LoginView){
+require(['backbone','underscore',"jquery", './Views/mainView'],
+function(Backbone, _, $, MainView){
     event_bus = _({}).extend(Backbone.Events);
     window._ = _;
     window.$ = $;
-    var loginView = new LoginView();
-    loginView.render();
+    var mainView = new MainView();
+    mainView.render();
     Backbone.history.start();
         
 });

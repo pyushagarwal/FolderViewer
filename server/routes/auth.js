@@ -56,7 +56,10 @@ router.post('/login', function(req, res, next){
             console.log('Inside req.login() callback')
             console.log(`req.session.passport: ${JSON.stringify(req.session.passport)}`)
             console.log(`req.user: ${JSON.stringify(req.user)}`);
-            return res.status(200).send({message : 'loggedin'});
+            return res.status(200).send({
+                status : 200,
+                message : 'loggedin'
+            });
         });
 
     })(req, res, next);

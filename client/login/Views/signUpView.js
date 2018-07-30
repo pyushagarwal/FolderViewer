@@ -63,16 +63,20 @@ function(Backbone, UserModel, SignUpTemplate, ERROR_MESSAGE, Common){
             }, this));
 
             if(areFormFieldsValid){
-                this.user.register().then(function(resp){
-                    if(resp.status == 200){
-                        window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
+                this.user.register().then(_.bind(function(respBody, success, response){
+                    if(response.status == 201){
+                        this.user.login().then(function(respBody, success, response){
+                            if(response.status == 200){
+                                window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
+                            }
+                        });    
                     }
-                }).catch(_.bind(function(error){
+                }, this)).catch(_.bind(function(error){
                     var $fieldView = this.$el.find(`[data-editors=email]`);
-                    if(error && error.status === 401){
-                        Common.renderErrorMessage($fieldView, ERROR_MESSAGE.WRONG_PASSWORD);
+                    if(error && error.status === 400 && error.responseJSON.error === 'Email exists'){
+                        Common.renderErrorMessage($fieldView, ERROR_MESSAGE.EMAIL_EXISTS);
                     }else{
-                        Common.renderErrorMessage($fieldView, ERROR_MESSAGE.TIMEOUT_ERROR);
+                        Common.renderErrorMessage($fieldView, ERROR_MESSAGE.SERVER_ERROR);
                     }
                 }, this));
             }

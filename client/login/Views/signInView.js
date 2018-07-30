@@ -41,8 +41,8 @@ define(['backbone',
             }, this));
 
             if(areFormFieldsValid){
-                this.user.login().then(function(resp){
-                    if(resp.status == 200){
+                this.user.login().then(function(respBody, success, response){
+                    if(response.status == 200){
                         window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
                     }
                 }).catch(_.bind(function(error){

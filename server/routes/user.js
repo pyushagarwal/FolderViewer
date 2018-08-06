@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var ERROR_MESSAGE = require('../errorMessage');
+var Folder = require('../models/folder');
+var fs = require("fs");
+var path = require("path");
 
 router.get('/', function(req, res){
     User.find()
@@ -32,12 +35,36 @@ router.post('/', function(req, res){
             return res.status(400).json({status : 400, error: errMsg });
         }
         else{
-            return res.status(201).json({
+            createNewFolderForUser(req, res, user)
+        }
+    });
+});
+
+function createNewFolderForUser(req, res, user){
+    var directoryPath = req.app.get('DATA_DIRECTORY');
+    var dirName = user.id;
+
+    // make this async in the future
+    fs.mkdirSync(path.join(directoryPath, dirName));
+    
+    // Create a entry for a new folder in folder schema
+    var folder = new Folder({
+        name: user.id,
+        created_by: user.id
+    });
+    folder.save(function(err){
+        if (err) {
+            console.log(err);
+            res.status(500).json({
+                'error': err
+            });
+        } else {
+            res.status(201).json({
                 name: user.name,
                 email : user.email,
             });
         }
     });
-});
+}
 
 module.exports = router;

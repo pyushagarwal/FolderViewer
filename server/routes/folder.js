@@ -4,12 +4,14 @@ var fs = require("fs");
 var path = require("path");
 const errorMessage = require("../errorMessage");
 
-
 // const PUBLIC_DIR = "D://";
 const PUBLIC_DIR = "/media/piyush/33F777F756F64209/docs/documents/nodejs/FolderViewer/DataDirectory";
 
 router.get('/*',function(req, res, next){
     var filePath = req.params[0];
+    if(filePath === ''){
+        return res.status(400).json({error:'file path required' });
+    }
 
     var fullFilePath = path.join(PUBLIC_DIR, filePath);
 

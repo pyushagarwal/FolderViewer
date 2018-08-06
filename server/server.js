@@ -19,6 +19,11 @@ mongoose.connect("mongodb://localhost:27017/folderViewer", { useNewUrlParser: tr
 const PORT = 4001;
 const app = express();
 
+// const PUBLIC_DIR = "D://";
+const PUBLIC_DIR = "/media/piyush/33F777F756F64209/docs/documents/nodejs/FolderViewer/DataDirectory";
+
+app.set('DATA_DIRECTORY', PUBLIC_DIR);
+
 app.use(morgan('dev'));
 app.use(express.json());
 /*
@@ -49,6 +54,5 @@ app.use('/api/auth', require('./routes/auth'));
 
 app.use('/api/user', require('./routes/user'));
 app.use('/api/file', require('./routes/folder'));
-
 
 app.listen(PORT, () => console.log("server started on port " + PORT));

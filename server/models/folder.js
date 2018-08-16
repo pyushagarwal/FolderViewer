@@ -2,9 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var folderSchema = new Schema({
-    name: {
-        type: String,
-        unique: true
+    _id: {
+        type: String
     },
     created_by: {
         type: Schema.Types.ObjectId,
@@ -12,10 +11,23 @@ var folderSchema = new Schema({
     },
     shared_with: {
         type:[{
-            type: Schema.Types.ObjectId,
-            ref: 'User'
+            id: {
+                type: Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            action: {
+                type: [String],
+                enum: ['ALL', 'READ', 'WRITE', 'SHARE'],
+                default: ['READ']
+            }
         }]
     }
-});
+}, {_id: false});
 
-module.exports = mongoose.model('Folder', folderSchema);
+// folderSchema.methods.getObjectId = function(){
+//     return Schema.Types.ObjectId.
+// }
+
+var Folder = mongoose.model('Folder', folderSchema);
+
+module.exports = Folder;

@@ -50,7 +50,11 @@ function createNewFolderForUser(req, res, user){
     // Create a entry for a new folder in folder schema
     var folder = new Folder({
         name: user.id,
-        created_by: user.id
+        created_by: user.id,
+        shared_with: [{
+            id: user.id,
+            action: 'ALL'
+        }]
     });
     folder.save(function(err){
         if (err) {

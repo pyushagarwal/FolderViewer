@@ -26,12 +26,12 @@ passport.use(new LocalStrategy({
 
 passport.serializeUser(function(user, done) {
     console.log('Inside serializeUser callback. User id is save to the session file store here')
-    done(null, user);
+    done(null, user.id);
 });
 
-passport.deserializeUser(function(user, done) {
-    console.log(`Inside deserializeUser callback. User ${user}`)    
-    done(null, user);
+passport.deserializeUser(function(userId, done) {
+    console.log(`Inside deserializeUser callback. Userid= ${userId}`)    
+    done(null, userId);
 });
 
 router.post('/login', function(req, res, next){

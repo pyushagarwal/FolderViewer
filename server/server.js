@@ -53,6 +53,10 @@ app.use('/', express.static('./client'));
 app.use('/api/auth', require('./routes/auth'));
 
 app.use('/api/user', require('./routes/user'));
-app.use('/api/file', require('./routes/folder'));
+app.use('/api/file', isAuthenticated ,require('./routes/folder'));
 
+
+app.get('/api/session', function(req, res){
+  res.status(200).send(Object.keys(app));
+});
 app.listen(PORT, () => console.log("server started on port " + PORT));

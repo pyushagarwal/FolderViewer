@@ -2,16 +2,19 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var folderSchema = new Schema({
-    _id: {
-        type: String
+    name: {
+        type: String,
+        unique: true,
+        required: true
     },
     created_by: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     shared_with: {
         type:[{
-            id: {
+            user_id: {
                 type: Schema.Types.ObjectId,
                 ref: 'User'
             },
@@ -19,10 +22,11 @@ var folderSchema = new Schema({
                 type: [String],
                 enum: ['ALL', 'READ', 'WRITE', 'SHARE'],
                 default: ['READ']
-            }
+            },
+            _id : false
         }]
     }
-}, {_id: false});
+});
 
 // folderSchema.methods.getObjectId = function(){
 //     return Schema.Types.ObjectId.

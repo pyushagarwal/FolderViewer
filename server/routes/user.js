@@ -52,7 +52,7 @@ function createNewFolderForUser(req, res, user){
         name: user.id,
         created_by: user.id,
         shared_with: [{
-            id: user.id,
+            user_id: user.id,
             action: 'ALL'
         }]
     });

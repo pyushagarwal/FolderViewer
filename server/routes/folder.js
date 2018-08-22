@@ -132,15 +132,32 @@ router.post('/*', function(req, res){
     
 });
 
+/* Share a folder or a file*/
 router.post('/*', function(req, res){
     var filePath = getFilePath(req);
     var userId = req.user;
     
     var next = function(){
+        var userEmail = req.body.email;
+        
         Folder.update({
-            id: filePath
-        },
-    )
+            name: filePath,
+            'shared_with.id':          
+        }, {
+            $addToSet: {
+                'shared_with.$.action':'ALL'
+                }  
+        }, function(err){
+
+        });
+
+    db.getCollection('folders').update({ name: '5b743522004f4752aef84ae4/third',
+    'shared_with.id' : ObjectId("5b747be1551f331ab2c68771")
+    },{
+    $addToSet: {
+        'shared_with.$.action':'ALL'
+        }  
+})
     }
     userHasAccess(filePath, userId, 'SHARE', res, next)
 });
@@ -180,7 +197,7 @@ var userHasAccess = function(filePath, userId, action, res, next){
     } else {
         Folder.find({
             name : filePath,
-            'shared_with.id': userId,
+            'shared_with.user_id': userId,
             'shared_with.action': {
                 $in : [action, 'ALL']
             }

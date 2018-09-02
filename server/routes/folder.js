@@ -1,165 +1,247 @@
 var express = require('express');
 var router = express.Router();
-var fs = require("fs");
+const fs = require('fs-extra')
 var path = require("path");
 const errorMessage = require("../errorMessage");
 var Folder = require('../models/folder');
 
-/*Retrive contents of a folder*/
-router.get('/*',function(req, res, next){
-    var filePath = getFilePath(req);
-    var next = function(){
-        var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), filePath);
-
-        fs.readdir(fullFilePath, function(err, files){
-        if(err){
-            if(err.code === "ENOTDIR"){
-            res.status(400).send({
-                error: errorMessage.NOT_A_DIRECTORY
-            })
-            }else{
-            next(err);
-            }
-        }else{
-            var response = [];
-
-            files.forEach(function(file_name){
-                var filePath = path.join(fullFilePath, file_name);
-                try{
-                var mtime = fs.statSync(path.join(fullFilePath, file_name)).mtime;
-                response.push({
-                    file_name : file_name,
-                    mtime : mtime
-                });
-                }
-                catch(error){
-                    console.log(error);
-                    next(null);
-                }            
-            });
-            res.status(200).send(response);
+/*Retrieve contents of a folder*/
+router.get('/:id',function(req, res){
+    // var filePath = getFilePath(req);
+    var fileID = req.params.id;
+    var promise = userHasAccess(fileID, req.user, "READ", res);   
+    
+    promise.then(function(fileInfo){
+        if(!fileInfo){
+            return;
         }
+        console.log(fileInfo);
+        var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
+        fs.readdir(fullFilePath, fileInfo)
+        .then(function(files){  
+            files = files.map(function(fileName){
+                return path.join(fileInfo.name, fileName);
+            })
+            return Folder.find({
+                name: {
+                    "$in": files
+                }}, {
+                    _id: true,
+                    name: true
+                })
+            .exec();
+        })
+        .then(response => res.status(200).json(response))
+        .catch(function(err){
+            if(err && err.code === "ENOTDIR"){
+                res.status(400).send({
+                    error: errorMessage.NOT_A_DIRECTORY
+                })
+            } else {
+                res.status(500).send({
+                    error: err
+                });
+            }
         });
-    }
-    userHasAccess(filePath, req.user, "READ", res, next);   
+    })
+    .catch(function(err){
+        res.status(500).json({
+            error: {
+                message: err.message,
+                stack: err.stack
+            }
+        });
+    });
 })
 
 /* Rename a given folder path */
-router.put('/*',function(req, res, next){
-    var filePath = getFilePath(req);
-    var userIdFromSession = req.user;
+router.put('/:id', function(req, res, next){
+    if(req.body.name){
+        renameFile(req, res);
+    } else if(req.body.shared_with &&  req.body.shared_with.length > 0){
+        grantPermissions(req, res);
+    } 
+    else {
+        res.status(400).send({});
+    }
+});
 
-    var next = function(){
-        if(filePath === userIdFromSession){
+function grantPermissions(req, res){
+    var fileId = req.params.id;
+    var userId = req.user;
+    userHasAccess(fileId, req.user, "GRANT", res)
+    .then(function(fileInfo){
+        if(!fileInfo){
+            return;
+        }
+
+        var IdOfUsers = req.body.shared_with.map(user => {
+            return user.user_id
+        });
+        
+        /*The permissions of the user who created it should never be modified
+        So remove the user id of the created user from the shared_with array
+        */
+
+        IdOfUsers[IdOfUsers.indexOf(fileInfo.created_by.toString())] = null;
+
+        return Folder.update({
+            _id: fileId
+        },{
+            $pull: {
+                'shared_with' :{
+                    'user_id':{
+                        '$in' : IdOfUsers
+                        }
+                }
+            }
+        }).exec();
+    })
+    .then(function(){
+        var usersToBeGrantedAccess = req.body.shared_with;
+        return Folder.update({
+            _id: fileId
+        },{
+            $addToSet :{
+                'shared_with':{
+                    $each: usersToBeGrantedAccess
+                }
+            }
+        }).exec();
+    })
+    .then( () => res.status(204).json({}))
+    .catch(function(err){
+        res.status(500).send({
+            error: err
+        });
+    });
+}
+
+function renameFile(req, res) {
+    var fileId = req.params.id;
+    var userId = req.user;
+    var promise =  userHasAccess(fileId, req.user, "WRITE", res);
+    promise.then(function(fileInfo){
+        if(!fileInfo){
+            return;
+        }
+        if ( fileInfo.name === userId ) {
             return res.status(400).json({
                 error : errorMessage.ROOT_DIR_CANNOT_BE_RENAMED     
             })
-         }
-         
-         var dataDirectory = req.app.get('DATA_DIRECTORY');
-         var oldFilePath = path.join(dataDirectory, filePath);
-         var newFilePath = path.join( path.dirname(oldFilePath), req.body.file_name);
-         fs.rename(oldFilePath, newFilePath, function(err){
-             if(err){
-                 if(err.code === "ENOENT"){
-                     res.status(400).json({
-                     error : errorMessage.FILE_DOES_NOT_EXISTS
-                     })
-                 }
-                 else if(err.code === "ENOTEMPTY"){
-                     res.status(400).json({
-                     error : errorMessage.FILE_NAME_ALREAY_EXISTS
-                     })
-                 }
-                 else{
-                     next(err)
-                 }
-             }
-             else{
-                 res.status(204).json({
-                     "success" : true
-                 })
-             }
-         });     
-    }
-    
-    userHasAccess(filePath, userIdFromSession, "RENAME", res, next);
-});
-
-/* Create a new directory in a given folder path */
-router.post('/*', function(req, res){
-    var filePath = getFilePath(req);
-    var userIdFromSession = req.user;
-    var next = function() {
-        var folderName = req.body['folder-name'];
+        }
+        
         var dataDirectory = req.app.get('DATA_DIRECTORY');
-        var newFolderPath = path.join(filePath, folderName);
-        var fullFilePath = path.join(dataDirectory, newFolderPath);
+        var newFileName = path.join(path.dirname(fileInfo.name), req.body.name);
 
-        fs.mkdir(fullFilePath, function(err){
-            if(err){
-                if(err.code === 'EEXIST'){
-                    res.status(200).json({});
-                } else {
-                    res.status(400).json({
-                        error : err
-                    })
-                }
-            } else {
-                var folder = new Folder({
-                    name: newFolderPath.replace(/^\//,''),
-                    created_by: userIdFromSession,
-                    shared_with: [{
-                        id: userIdFromSession,
-                        action: 'ALL'
-                    }]
-                });
-                folder.save(function(err){
-                    if (err) {
-                        console.log(err);
-                        res.status(500).json({
-                            'error': err
-                        });
-                    } else {        
-                        res.status(201).json({});
-                    }
+        var oldFilePath = path.join(dataDirectory, fileInfo.name);
+        var newFilePath = path.join( dataDirectory, newFileName);
+
+        fs.rename(oldFilePath, newFilePath)
+        .then(function(){
+            return Folder.update({
+                _id: fileInfo._id
+            }, {
+                name: newFileName
+            })
+        })
+        .then( () => res.status(204).json({"success" : true}))
+        .catch( function(err){
+            if(err.code === "ENOENT"){
+                res.status(400).json({
+                error : errorMessage.FILE_DOES_NOT_EXISTS
+                })
+            }
+            else if(err.code === "ENOTEMPTY"){
+                res.status(400).json({
+                error : errorMessage.FILE_NAME_ALREAY_EXISTS
+                })
+            }
+            else{
+                res.status(500).send({
+                    error: err
                 });
             }
         });
-    };
-
-    userHasAccess(filePath, userIdFromSession, "WRITE", res, next);
+    });
+}
+/* Create a new directory
+@params : req.body : {
+    "parent_id" : '',
+    "name": '',
+    "shared_with" : []
+}*/
+router.post('/', function(req, res){
     
-});
-
-/* Share a folder or a file*/
-router.post('/*', function(req, res){
-    var filePath = getFilePath(req);
+    var parentFileId = req.body['parent_id'];
     var userId = req.user;
     
-    var next = function(){
-        var userEmail = req.body.email;
-        
-        Folder.update({
-            name: filePath,
-            'shared_with.id':          
-        }, {
-            $addToSet: {
-                'shared_with.$.action':'ALL'
-                }  
-        }, function(err){
+    var promise = userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
+
+    promise.then( function(parentFileInfo) {
+
+        var fileName = req.body['name'];
+        var dataDirectory = req.app.get('DATA_DIRECTORY');
+        var newFilePath = path.join(parentFileInfo.name, fileName);
+        var fullFilePath = path.join(dataDirectory, newFilePath);
+        fs.mkdir(fullFilePath)
+        .then(function(){
+
+            var shared_with = parentFileInfo.shared_with;
+            
+            shared_with = shared_with.filter(function(current){
+                if(current.user_id.toString() === userId ){
+                    return false;
+                }
+            });
+
+            shared_with.push({
+                user_id: userId,
+                action: 'ALL'
+            });
+
+            var folder = new Folder({
+                name: newFilePath.replace(/^\//,''),
+                created_by: userId,
+                shared_with: shared_with
+            });
+
+            folder.save().then((newFileInfo) => res.status(201).json({
+                name: newFileInfo.name,
+                id: newFileInfo._id
+            }));
+        })
+        .catch(function(err){
+            if(err && err.code === 'EEXIST'){
+                res.status(400).json({error : 'Folder already exists'});
+            } else {
+                res.status(500).json({
+                    'error': err
+                });
+            }
+        });
+    })
+    .catch(function(err){
+        res.status(500).send({
+            error: err
+        });
+    });
+});
+
+router.delete('/:id', function(req, res, fileId){
+    var userId = req.user;
+    var promise = userHasAccess(parentFileId, userId, "DELETE", res);
+    promise.then(function(fileInfo){
+        var dataDirectory = req.app.get('DATA_DIRECTORY');
+        var filePath = path.join(dataDirectory, fileInfo.name);
+        return fs.remove(filePath);
+    })
+    .then(function(){
+        return Folder.deleteOne({
 
         });
+    })
 
-    db.getCollection('folders').update({ name: '5b743522004f4752aef84ae4/third',
-    'shared_with.id' : ObjectId("5b747be1551f331ab2c68771")
-    },{
-    $addToSet: {
-        'shared_with.$.action':'ALL'
-        }  
-})
-    }
-    userHasAccess(filePath, userId, 'SHARE', res, next)
 });
 
 /* If no file path is provided, then the folder path is set to the userID of signed
@@ -173,39 +255,39 @@ var getFilePath = function(req){
 }
 
 
-var userHasAccess = function(filePath, userId, action, res, next){
+/*This function returns a promise
+ */
+var userHasAccess = function(fileID, userId, action, res, fieldsToBeReturned){
     
-    // ACTIONS = {READ, WRITE, SHARE, ALL}
+    // ACTIONS available = {READ, WRITE, DELETE, GRANT, ALL}
+    
+    fieldsToBeReturned = Object.assign({
+        _id : 1,
+        name: 1,
+        created_by: 1
+    }, fieldsToBeReturned);
 
-    var callback = function(folderId){
-        if(folderId && folderId.length == 1){
-            next();
+    return Folder.findOne({
+        _id: fileID,
+        'shared_with': {
+            $elemMatch : {
+                'user_id': userId,
+                'action' : {
+                    "$in" : [action, 'ALL']
+                }
+            }
+        }
+    }, fieldsToBeReturned).exec()
+    .then(function(fileInfo){
+        if(fileInfo){
+            return fileInfo;
         } else {
             res.status(403).send({
                 error: errorMessage.FORBIDDEN_RESOURCE
             });
+            return null;
         }
-    }
-    if(action == "RENAME"){
-        Folder.find({
-            name: filePath,
-            created_by: userId
-        }, {
-            id : 1
-        }).then(callback);
-
-    } else {
-        Folder.find({
-            name : filePath,
-            'shared_with.user_id': userId,
-            'shared_with.action': {
-                $in : [action, 'ALL']
-            }
-        }, {
-            id : 1
-        })
-        .then(callback);
-    }
-};
+    });
+}
 
 module.exports = router;

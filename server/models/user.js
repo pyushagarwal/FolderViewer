@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
-
+var Schema = mongoose.Schema;
 
 var userSchema = new mongoose.Schema({
     email: {
@@ -16,6 +16,19 @@ var userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    files:{
+        type:[{
+            name: {
+                type: String,
+                ref: 'Folder' 
+            },
+            id:{
+                type: Schema.Types.ObjectId,
+                ref: 'Folder' 
+            },
+            _id: false
+        }]
     }
 });
 

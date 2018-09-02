@@ -59,4 +59,9 @@ app.use('/api/file', isAuthenticated ,require('./routes/folder'));
 app.get('/api/session', function(req, res){
   res.status(200).send(Object.keys(app));
 });
-app.listen(PORT, () => console.log("server started on port " + PORT));
+
+if(!module.parent){
+  app.listen(PORT, () => console.log("server started on port " + PORT));
+}
+
+module.exports = app;

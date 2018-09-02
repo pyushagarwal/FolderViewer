@@ -1,0 +1,322 @@
+{
+	"id": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+	"name": "FolderViewer",
+	"description": "",
+	"order": [
+		"d5648eaf-b679-66eb-2423-c6ec3739074f",
+		"6b08782c-899f-4fd7-f237-773e025eb52b",
+		"c4960d55-f031-ba23-307d-23e64c5af9da",
+		"e5817ef0-d8b3-c64f-81f9-c7f524b8392e",
+		"4e63d36d-2fbc-93d0-dbdf-3122729b485b",
+		"c176695b-84e4-1755-e178-7e54b85c152a",
+		"754e5ac2-1922-1333-f104-280563939ba0",
+		"8d1032cb-7016-3791-d981-c95d0d84991c",
+		"626a441a-4345-c129-38e8-cab49f56bdc7",
+		"626977dd-2da2-e2d4-68ef-e9bf04229791"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1535350561736,
+	"owner": "391616",
+	"public": false,
+	"requests": [
+		{
+			"id": "4e63d36d-2fbc-93d0-dbdf-3122729b485b",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/file/5b8a72e2712bfa1634123f11",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1535800799503,
+			"name": "Get files",
+			"description": "",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"responses": [],
+			"rawModeData": "{\n\t\"parent_id\":\"5b83cd37e59a9fc2f4fa0b73\",\n\t\"name\": \"one\"\n}"
+		},
+		{
+			"id": "626977dd-2da2-e2d4-68ef-e9bf04229791",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/file/5b8c209a6bebb07debda4527",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "DELETE",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Delete file",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1535911481230,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": ""
+		},
+		{
+			"id": "626a441a-4345-c129-38e8-cab49f56bdc7",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/user/5b8a72e2712bfa1634123f10",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Get User/Id",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1535886241889,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n        \"name\": \"piyush agarwal\",\n        \"email\": \"e@xyz.com\",\n        \"password\" : \"password\"\n }"
+		},
+		{
+			"id": "6b08782c-899f-4fd7-f237-773e025eb52b",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/user",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1535888767098,
+			"name": "CreateUser",
+			"description": "",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"responses": [],
+			"rawModeData": "{\n        \"name\": \"piyush agarwal\",\n        \"email\": \"k@xyz.com\",\n        \"password\" : \"password\"\n }"
+		},
+		{
+			"id": "754e5ac2-1922-1333-f104-280563939ba0",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/file/5b8a75c9d977e2196dad559b",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "PUT",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Grant permissions",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1535801206122,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"shared_with\": [{\n\t\t\"action\" : [ \n                \"READ\"\n            ],\n         \n        \"user_id\" :\"5b8a7655d977e2196dad559d\"\n\t}]\n}"
+		},
+		{
+			"id": "8d1032cb-7016-3791-d981-c95d0d84991c",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/user",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Get All Users",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1535886220043,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n        \"name\": \"piyush agarwal\",\n        \"email\": \"e@xyz.com\",\n        \"password\" : \"password\"\n }"
+		},
+		{
+			"id": "c176695b-84e4-1755-e178-7e54b85c152a",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/file/5b83ef2932f221a364563c02",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "PUT",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1535388620491,
+			"name": "rename file",
+			"description": "",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"responses": [],
+			"rawModeData": "{\n\t\"name\": \"twoRenamed\"\n}",
+			"collection_id": "6fec8afc-6a01-661f-283a-6a95e038aa4d"
+		},
+		{
+			"id": "c4960d55-f031-ba23-307d-23e64c5af9da",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/auth/login",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1535800802300,
+			"name": "Sign in Log in",
+			"description": "",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"responses": [],
+			"rawModeData": "{\n\t\"email\": \"a@xyz.com\",\n\t\"password\": \"password\"\n}"
+		},
+		{
+			"id": "d5648eaf-b679-66eb-2423-c6ec3739074f",
+			"headers": "",
+			"headerData": [],
+			"url": "http://localhost:4001/api/user",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"data": null,
+			"dataMode": "params",
+			"name": "Get Users",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1535350563144,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"collection_id": "6fec8afc-6a01-661f-283a-6a95e038aa4d"
+		},
+		{
+			"id": "e5817ef0-d8b3-c64f-81f9-c7f524b8392e",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:4001/api/file/",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1535800796517,
+			"name": "Add folder",
+			"description": "",
+			"collectionId": "6fec8afc-6a01-661f-283a-6a95e038aa4d",
+			"responses": [],
+			"rawModeData": "{\n\t\"parent_id\":\"5b8a72e2712bfa1634123f11\",\n\t\"name\": \"two\"\n}"
+		}
+	]
+}

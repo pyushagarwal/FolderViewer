@@ -1,14 +1,18 @@
 {
   "scripts": {
-    "start": "node server/server.js"
+    "start": "nodemon server/server.js",
+    "test": "mocha server/tests"
   },
   "name": "folder_viewer",
   "version": "1.0.0",
   "description": "This application is used to view and modify contents of a directory",
   "main": "server.js",
   "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^4.2.0",
     "grunt": "^1.0.3",
-    "grunt-bower-task": "^0.5.0"
+    "grunt-bower-task": "^0.5.0",
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,6 +20,7 @@
     "eslint": "^5.0.1",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
+    "fs-extra": "^7.0.0",
     "mongo": "^0.1.0",
     "mongoose": "^5.2.4",
     "morgan": "^1.9.0",

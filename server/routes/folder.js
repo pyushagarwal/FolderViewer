@@ -4,14 +4,21 @@ const fs = require('fs-extra')
 var path = require("path");
 const errorMessage = require("../errorMessage");
 var Folder = require('../models/folder');
+var User = require('../models/user');
 
 /*Retrieve contents of a folder*/
-router.get('/:id',function(req, res){
+router.get('/:id?',function(req, res){
     // var filePath = getFilePath(req);
-    var fileID = req.params.id;
-    var promise = userHasAccess(fileID, req.user, "READ", res);   
-    
-    promise.then(function(fileInfo){
+
+    var userId = req.user;
+    var fileId = req.params.id;
+
+    var promise = getFileIdOfRootUser(fileId, userId);
+
+    promise.then(function(fileId){
+        return userHasAccess(fileId, req.user, "READ", res);
+    })
+    .then(function(fileInfo){
         if(!fileInfo){
             return;
         }
@@ -31,7 +38,11 @@ router.get('/:id',function(req, res){
                 })
             .exec();
         })
-        .then(response => res.status(200).json(response))
+        .then(response => res.status(200).json({
+           id: fileInfo.id,
+           name: fileInfo.name,
+           files: response
+        }))
         .catch(function(err){
             if(err && err.code === "ENOTDIR"){
                 res.status(400).send({
@@ -171,14 +182,17 @@ function renameFile(req, res) {
     "name": '',
     "shared_with" : []
 }*/
-router.post('/', function(req, res){
+router.post('/', function(req, res, next){
     
     var parentFileId = req.body['parent_id'];
     var userId = req.user;
-    
-    var promise = userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
 
-    promise.then( function(parentFileInfo) {
+    var promise = getFileIdOfRootUser(parentFileId, userId);
+
+    promise.then(function(parentFileId){
+        return userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
+    })
+    .then( function(parentFileInfo) {
 
         var fileName = req.body['name'];
         var dataDirectory = req.app.get('DATA_DIRECTORY');
@@ -203,10 +217,12 @@ router.post('/', function(req, res){
             var folder = new Folder({
                 name: newFilePath.replace(/^\//,''),
                 created_by: userId,
-                shared_with: shared_with
+                modified_by: userId,
+                shared_with: shared_with,
+                is_root: false
             });
 
-            folder.save().then((newFileInfo) => res.status(201).json({
+            return folder.save().then((newFileInfo) => res.status(201).json({
                 name: newFileInfo.name,
                 id: newFileInfo._id
             }));
@@ -222,26 +238,51 @@ router.post('/', function(req, res){
         });
     })
     .catch(function(err){
-        res.status(500).send({
-            error: err
-        });
+        
     });
 });
 
-router.delete('/:id', function(req, res, fileId){
+router.delete('/:id', function(req, res, next){
     var userId = req.user;
-    var promise = userHasAccess(parentFileId, userId, "DELETE", res);
+    var fileId = req.params.id
+    var promise = userHasAccess(fileId, userId, "DELETE", res);
     promise.then(function(fileInfo){
+        if(!fileInfo){
+            return;
+        }
+        if(fileInfo.is_root) {
+            res.status(400).json({
+                error: 'Root directory cannot be deleted'
+            });
+            return;
+        }
         var dataDirectory = req.app.get('DATA_DIRECTORY');
         var filePath = path.join(dataDirectory, fileInfo.name);
-        return fs.remove(filePath);
-    })
-    .then(function(){
-        return Folder.deleteOne({
-
+        return fs.remove(filePath)    
+        .then(function(){
+            return Folder.deleteOne({
+                _id: fileInfo._id
+            });
+        })
+        .then(() => res.status(204).json())
+        .catch(function(err) {
+            throw err;
         });
     })
+    .catch(next);
+});
 
+router.use(function(req, res){
+    res.status(404).send();
+});
+
+router.use(function(err, req, res){
+    res.status(500).send({
+        error: {
+            message: error.message,
+            stacktrace: error.stacktrace
+        }
+    });
 });
 
 /* If no file path is provided, then the folder path is set to the userID of signed
@@ -257,18 +298,19 @@ var getFilePath = function(req){
 
 /*This function returns a promise
  */
-var userHasAccess = function(fileID, userId, action, res, fieldsToBeReturned){
+var userHasAccess = function(fileId, userId, action, res, fieldsToBeReturned){
     
     // ACTIONS available = {READ, WRITE, DELETE, GRANT, ALL}
     
     fieldsToBeReturned = Object.assign({
         _id : 1,
         name: 1,
-        created_by: 1
+        created_by: 1,
+        is_root: 1
     }, fieldsToBeReturned);
 
     return Folder.findOne({
-        _id: fileID,
+        _id: fileId,
         'shared_with': {
             $elemMatch : {
                 'user_id': userId,
@@ -286,6 +328,29 @@ var userHasAccess = function(fileID, userId, action, res, fieldsToBeReturned){
                 error: errorMessage.FORBIDDEN_RESOURCE
             });
             return null;
+        }
+    });
+}
+
+/*Returns a promise with a "file id of root" user as a param
+*/
+var getFileIdOfRootUser = function(fileId, userId){
+    return new Promise(function(resolve, reject){
+        if(!fileId){
+            User.findOne({
+                _id: userId
+            },{
+                files: true
+            })
+            .then(function(user){
+                fileId = user.files[0].id;
+                resolve(fileId);
+            })
+            .catch(function(err){
+                reject(err)
+            });
+        } else {
+            resolve(fileId);
         }
     });
 }

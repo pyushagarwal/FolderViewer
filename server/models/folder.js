@@ -12,6 +12,25 @@ var folderSchema = new Schema({
         ref: 'User',
         required: true
     },
+    created_on: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    modified_by: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    modified_on: {
+        type: Date,
+        default: Date.now,
+        required: true
+    },
+    is_root:{
+        type: Boolean,
+        default: true
+    },
     shared_with: {
         type:[{
             user_id: {
@@ -25,6 +44,10 @@ var folderSchema = new Schema({
             },
             _id : false
         }]
+    },
+    parent_id: {
+        type: Schema.Types.ObjectId,
+        ref: 'Folder'
     }
 });
 

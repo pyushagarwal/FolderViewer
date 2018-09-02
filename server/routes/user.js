@@ -12,8 +12,31 @@ router.get('/', function(req, res){
         return {
             name: row.name,
             email : row.email,
+            id: row.id
         }
     })))
+});
+
+router.get('/:id', function(req, res, next){
+    User.find({
+        _id: req.params.id
+    })
+    .then((result) => res.status(200).send(result.map(function(row){
+        return {
+            name: row.name,
+            email : row.email,
+            id: row.id
+        }
+    })[0]))
+});
+
+router.delete('/:id', function(req, res, next){
+    User.deleteOne({
+        _id: req.params.id
+    })
+    .then(()=> res.status(200).json({
+        deleted : true
+    }));
 });
 
 router.post('/', function(req, res){
@@ -50,25 +73,37 @@ function createNewFolderForUser(req, res, user){
     // Create a entry for a new folder in folder schema
     var folder = new Folder({
         name: user.id,
+        is_root: true,
         created_by: user.id,
+        modified_by: user.id,
         shared_with: [{
             user_id: user.id,
             action: 'ALL'
         }]
     });
-    folder.save(function(err){
-        if (err) {
-            console.log(err);
-            res.status(500).json({
-                'error': err
-            });
-        } else {
-            res.status(201).json({
-                name: user.name,
-                email : user.email,
-            });
-        }
+    folder.save().then(function(){
+        return User.update({_id: user.id},{
+            $set : {
+                files: [{
+                    id: folder._id,
+                    name: folder.name
+                }]
+            }
+        })
+    })
+    .then(function(){
+        res.status(201).json({
+            name: user.name,
+            email : user.email,
+            id: user.id
+        });
+    })
+    .catch(function(){
+        res.status(500).json({
+            'error': err
+        });
     });
+
 }
 
 module.exports = router;

@@ -78,7 +78,7 @@ function createNewFolderForUser(req, res, user){
         modified_by: user.id,
         shared_with: [{
             user_id: user.id,
-            action: 'ALL'
+            action: 'GRANT'
         }]
     });
     folder.save().then(function(){

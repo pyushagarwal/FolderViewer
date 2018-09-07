@@ -156,14 +156,14 @@ function renameFile(req, res) {
                 name: newFileName
             })
         })
-        .then( () => res.status(204).json({"success" : true}))
+        .then( () => res.status(200).json({"success" : true}))
         .catch( function(err){
             if(err.code === "ENOENT"){
                 res.status(400).json({
                 error : errorMessage.FILE_DOES_NOT_EXISTS
                 })
             }
-            else if(err.code === "ENOTEMPTY"){
+            else if(err.code === "ENOTEMPTY" || 'EPERM'){
                 res.status(400).json({
                 error : errorMessage.FILE_NAME_ALREAY_EXISTS
                 })
@@ -211,7 +211,7 @@ router.post('/', function(req, res, next){
 
             shared_with.push({
                 user_id: userId,
-                action: 'ALL'
+                action: 'GRANT'
             });
 
             var folder = new Folder({
@@ -229,7 +229,7 @@ router.post('/', function(req, res, next){
         })
         .catch(function(err){
             if(err && err.code === 'EEXIST'){
-                res.status(400).json({error : 'Folder already exists'});
+                res.status(400).json({error : errorMessage.FILE_NAME_ALREAY_EXISTS});
             } else {
                 res.status(500).json({
                     'error': err
@@ -302,6 +302,13 @@ var userHasAccess = function(fileId, userId, action, res, fieldsToBeReturned){
     
     // ACTIONS available = {READ, WRITE, DELETE, GRANT, ALL}
     
+    const ACTIONS = {
+        "READ" : ["READ", "WRITE", "DELETE", "GRANT"],
+        "WRITE": ["WRITE", "DELETE", "GRANT"],
+        "DELETE": ["DELETE", "GRANT"],
+        "GRANT": ["GRANT"]
+    }
+
     fieldsToBeReturned = Object.assign({
         _id : 1,
         name: 1,
@@ -315,7 +322,7 @@ var userHasAccess = function(fileId, userId, action, res, fieldsToBeReturned){
             $elemMatch : {
                 'user_id': userId,
                 'action' : {
-                    "$in" : [action, 'ALL']
+                    "$in" : ACTIONS[action]
                 }
             }
         }

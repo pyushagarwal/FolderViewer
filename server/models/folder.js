@@ -39,7 +39,7 @@ var folderSchema = new Schema({
             },
             action: {
                 type: [String],
-                enum: ['ALL', 'READ', 'WRITE', 'SHARE'],
+                enum: ['READ', 'WRITE', 'DELETE', 'GRANT'],
                 default: ['READ']
             },
             _id : false

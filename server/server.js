@@ -19,7 +19,7 @@ mongoose.connect("mongodb://localhost:27017/folderViewer", { useNewUrlParser: tr
 const PORT = 4001;
 const app = express();
 
-// const PUBLIC_DIR = "D://";
+// const PUBLIC_DIR = "D://javascript30//FolderViewer//DataDirectory";
 const PUBLIC_DIR = "/media/piyush/33F777F756F64209/docs/documents/nodejs/FolderViewer/DataDirectory";
 
 app.set('DATA_DIRECTORY', PUBLIC_DIR);

@@ -43,7 +43,7 @@ userSchema.pre('save', function(callback){
 });
 
 userSchema.methods.verifyPassword = function(incomingPassword, done){
-    console.log('Inside verifyPassword in user model');
+    //console.log('Inside verifyPassword in user model');
 
     var user = this;
     

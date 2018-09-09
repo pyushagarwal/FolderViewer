@@ -5,9 +5,11 @@ var path = require("path");
 const errorMessage = require("../errorMessage");
 var Folder = require('../models/folder');
 var User = require('../models/user');
+var winston = require('winston');
+var logger = winston.loggers.get('main');
 
 /*Retrieve contents of a folder*/
-router.get('/:id?',function(req, res){
+router.get('/:id?',function(req, res, next){
     // var filePath = getFilePath(req);
 
     var userId = req.user;
@@ -22,7 +24,6 @@ router.get('/:id?',function(req, res){
         if(!fileInfo){
             return;
         }
-        console.log(fileInfo);
         var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
         fs.readdir(fullFilePath, fileInfo)
         .then(function(files){  
@@ -49,40 +50,32 @@ router.get('/:id?',function(req, res){
                     error: errorMessage.NOT_A_DIRECTORY
                 })
             } else {
-                res.status(500).send({
-                    error: err
-                });
+                next(err);
             }
         });
     })
-    .catch(function(err){
-        res.status(500).json({
-            error: {
-                message: err.message,
-                stack: err.stack
-            }
-        });
-    });
+    .catch(next);
 })
 
 /* Rename a given folder path */
 router.put('/:id', function(req, res, next){
     if(req.body.name){
-        renameFile(req, res);
+        renameFile(req, res, next);
     } else if(req.body.shared_with &&  req.body.shared_with.length > 0){
-        grantPermissions(req, res);
+        grantPermissions(req, res, next);
     } 
     else {
         res.status(400).send({});
     }
 });
 
-function grantPermissions(req, res){
+function grantPermissions(req, res, next){
     var fileId = req.params.id;
     var userId = req.user;
     userHasAccess(fileId, req.user, "GRANT", res)
     .then(function(fileInfo){
         if(!fileInfo){
+            throw null;
             return;
         }
 
@@ -121,14 +114,10 @@ function grantPermissions(req, res){
         }).exec();
     })
     .then( () => res.status(204).json({}))
-    .catch(function(err){
-        res.status(500).send({
-            error: err
-        });
-    });
+    .catch(next);
 }
 
-function renameFile(req, res) {
+function renameFile(req, res, next) {
     var fileId = req.params.id;
     var userId = req.user;
     var promise =  userHasAccess(fileId, req.user, "WRITE", res);
@@ -148,7 +137,7 @@ function renameFile(req, res) {
         var oldFilePath = path.join(dataDirectory, fileInfo.name);
         var newFilePath = path.join( dataDirectory, newFileName);
 
-        fs.rename(oldFilePath, newFilePath)
+        fs.move(oldFilePath, newFilePath)
         .then(function(){
             return Folder.update({
                 _id: fileInfo._id
@@ -158,23 +147,18 @@ function renameFile(req, res) {
         })
         .then( () => res.status(200).json({"success" : true}))
         .catch( function(err){
-            if(err.code === "ENOENT"){
+            if(err.message.indexOf("dest already exists") != -1){
                 res.status(400).json({
-                error : errorMessage.FILE_DOES_NOT_EXISTS
-                })
-            }
-            else if(err.code === "ENOTEMPTY" || 'EPERM'){
-                res.status(400).json({
-                error : errorMessage.FILE_NAME_ALREAY_EXISTS
+                    error : errorMessage.FILE_NAME_ALREAY_EXISTS
                 })
             }
             else{
-                res.status(500).send({
-                    error: err
-                });
+                logger.error(err instanceof String);
+                next(err);
             }
         });
-    });
+    })
+    .catch(next);
 }
 /* Create a new directory
 @params : req.body : {
@@ -193,14 +177,15 @@ router.post('/', function(req, res, next){
         return userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
     })
     .then( function(parentFileInfo) {
-
+        if(!parentFileInfo){
+            return;
+        }
         var fileName = req.body['name'];
         var dataDirectory = req.app.get('DATA_DIRECTORY');
         var newFilePath = path.join(parentFileInfo.name, fileName);
         var fullFilePath = path.join(dataDirectory, newFilePath);
         fs.mkdir(fullFilePath)
         .then(function(){
-
             var shared_with = parentFileInfo.shared_with;
             
             shared_with = shared_with.filter(function(current){
@@ -231,15 +216,11 @@ router.post('/', function(req, res, next){
             if(err && err.code === 'EEXIST'){
                 res.status(400).json({error : errorMessage.FILE_NAME_ALREAY_EXISTS});
             } else {
-                res.status(500).json({
-                    'error': err
-                });
+                next(err);
             }
         });
     })
-    .catch(function(err){
-        
-    });
+    .catch(next);
 });
 
 router.delete('/:id', function(req, res, next){
@@ -266,7 +247,7 @@ router.delete('/:id', function(req, res, next){
         })
         .then(() => res.status(204).json())
         .catch(function(err) {
-            throw err;
+            next(err);
         });
     })
     .catch(next);
@@ -277,12 +258,16 @@ router.use(function(req, res){
 });
 
 router.use(function(err, req, res){
-    res.status(500).send({
-        error: {
-            message: error.message,
-            stacktrace: error.stacktrace
-        }
-    });
+    logger.error('Following error occurred');
+    logger.error(err);
+    if(!res.headersSent){
+        res.status(500).send({
+            error: {
+                message: error.message,
+                stacktrace: error.stacktrace
+            }
+        });
+    }
 });
 
 /* If no file path is provided, then the folder path is set to the userID of signed

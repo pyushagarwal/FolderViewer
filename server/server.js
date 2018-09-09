@@ -1,30 +1,105 @@
 const express = require('express');
 const morgan = require('morgan');
-
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mongo = require('mongo');
 const mongoose = require('mongoose');
+const PropertiesReader = require('properties-reader');
+const path = require('path');
+var fs = require('fs-extra');
+var config = PropertiesReader('server.ini');
 
-mongoose.connect("mongodb://localhost:27017/folderViewer", { useNewUrlParser: true },
-    function(err, res){
-      if(err)
-        console.log("Error occurred while connecting to mongodb " + JSON.stringify(err));
-      else
-        console.log(`mongodb connected on host=${res.host} and port=${res.port}`);
+const winston = require('winston');
+const format = winston.format;
+
+// var logger = winston.createLogger();
+
+var logger = winston.loggers.add('main', {
+  format: format.combine(
+    format.timestamp(),
+    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'server.log'})
+  ],
+  level: config.get('LOG_LEVEL') | 'info'
 });
 
-const PORT = 4001;
+mongoose.connection = (function(){
+  var MONGOOSE_OPTIONS = {
+      auto_reconnect: true,
+      reconnectTries: Number.MAX_VALUE,
+      reconnectInterval: 1000,
+      useNewUrlParser: true,
+      bufferCommands: false,
+      poolSize: config.get('DB_CONNECTIONS_COUNT'),
+  }
+
+  if(config.get('DB_USER') && config.get('DB_PASSWORD')){
+    logger.debug('DB username and password provided');
+    MONGOOSE_OPTIONS.auth = {
+      user: config.get('DB_USER'),
+      password: config.get('DB_PASSWORD')
+    }
+  }
+  
+  const mongoConnectionUrl = `mongodb://${config.get('DB_HOST')}:${config.get('DB_PORT')}/${config.get('DB_NAME')}`;
+  
+  var connection = mongoose.createConnection(mongoConnectionUrl, MONGOOSE_OPTIONS); 
+
+  connection.on('error', function(err) {
+    logger.info("Mongodb event=error\n" + JSON.stringify(err));
+  });
+  
+  connection.on('disconnected', function() {
+    logger.info("Mongodb event=disconnected");
+  });
+  
+  connection.on('connected', function(){
+    logger.info(`Mongodb event=connected : connection established on host=${this.host} and port=${this.port}`);
+  });
+  return connection;  
+})();
+
+
 const app = express();
 
-// const PUBLIC_DIR = "D://javascript30//FolderViewer//DataDirectory";
-const PUBLIC_DIR = "/media/piyush/33F777F756F64209/docs/documents/nodejs/FolderViewer/DataDirectory";
+config.each(function(key, value){
+  app.set(key, value);
+})
 
-app.set('DATA_DIRECTORY', PUBLIC_DIR);
 
-app.use(morgan('dev'));
+var dataPath = app.get('DATA_DIRECTORY');
+if(!dataPath){
+  dataPath = path.dirname(__dirname);
+}
+
+dataPath = path.join(dataPath, 'FolderViewerData');
+
+fs.mkdir(dataPath)
+.then(function(){ 
+  logger.info('Data path = ' + dataPath)
+})
+.catch(function(err){
+  if(err && err.code === 'EEXIST') {
+    logger.info('Data path = ' + dataPath);
+  } else {
+    logger.error(err);
+    process.exit(0);
+  }
+});
+
+app.set('DATA_DIRECTORY', dataPath);
+
+  
+
+app.set('logger', logger);
+
+// app.use(morgan('dev'));
+
 app.use(express.json());
 /*
 The below lines must be invoked serially
@@ -60,8 +135,19 @@ app.get('/api/session', function(req, res){
   res.status(200).send(Object.keys(app));
 });
 
+var shutdownMongooseConnection = function() {
+  mongoose.connection.close().then(function(){
+    logger.info('Mongo db connection closed');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', shutdownMongooseConnection);
+process.on('SIGINT', shutdownMongooseConnection);
+
+
 if(!module.parent){
-  app.listen(PORT, () => console.log("server started on port " + PORT));
+  app.listen(app.get('PORT'), () => logger.info("server started on port " + app.get('PORT')));
 }
 
 module.exports = app;

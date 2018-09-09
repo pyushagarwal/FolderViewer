@@ -22,11 +22,13 @@
     "express-session": "^1.15.6",
     "fs-extra": "^7.0.0",
     "mongo": "^0.1.0",
-    "mongoose": "^5.2.4",
+    "mongoose": "5.2.4",
     "morgan": "^1.9.0",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "properties-reader": "0.0.16",
+    "winston": "^3.1.0"
   },
   "author": "Piyush Agarwal",
   "license": "ISC",

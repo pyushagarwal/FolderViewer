@@ -3,17 +3,26 @@ const chai = require('chai');
 const mocha = require('mocha');
 const expect = require('chai').expect;
 var errorMessage = require('../errorMessage');
+var mongoose = require('mongoose');
 chai.use(require('chai-http'))
 
 const winston = require('winston');
-var logger = winston.loggers.get('main');
-logger.remove(winston.transports.Console);
+var logger = require('../configurelog')();
+logger.transports[0].silent = true;
 
 var agent = chai.request.agent(app);
-
 describe('Folders API', function(){
 
-    this.timeout(4000); 
+    this.timeout(3000);
+    
+    before(function(done) {
+        setTimeout(function(){
+            // if(mongoose.connection.readyState == 1){
+            //     done();
+            // }
+            done();
+        }, 2000);
+    });
     
     var users = [1,2,3,4,5].map(function(){
         var randomString = (Math.ceil(Math.random()*1000000)).toString(); 
@@ -52,7 +61,6 @@ describe('Folders API', function(){
             }); 
         });
     });
-
     it('Login the first user. POST auth/login', function(){
         return agent.post('/api/auth/login')
         .send({

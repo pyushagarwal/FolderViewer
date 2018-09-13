@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
+var logger = require('../configurelog')();
 
 var userSchema = new mongoose.Schema({
     email: {
@@ -43,7 +44,7 @@ userSchema.pre('save', function(callback){
 });
 
 userSchema.methods.verifyPassword = function(incomingPassword, done){
-    //console.log('Inside verifyPassword in user model');
+    logger.debug('Inside verifyPassword in user model');
 
     var user = this;
     

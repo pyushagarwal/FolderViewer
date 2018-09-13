@@ -3,13 +3,13 @@ var LocalStrategy = require('passport-local').Strategy;
 var User = require('../models/user');
 var express = require('express');
 var router = express.Router();
-
+var logger = require('../configurelog')();
 
 passport.use(new LocalStrategy({
         usernameField : 'email'
     },
     function(email, password, done){
-        //console.log("inside local strategy callback");
+        logger.debug("inside local strategy callback");
         User.findOne({email : email}, function(err, user){
             if(err){
                 return done(err);

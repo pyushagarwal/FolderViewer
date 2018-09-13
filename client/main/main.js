@@ -37,13 +37,12 @@ require(['backbone','underscore',"jquery"], function(Backbone, _, $){
     window.event_bus = event_bus;
     window.$ = $;
     window._ = _;
-});
-
-require(['backbone','./Router/router', './Views/App'],
-    function(Backbone, Router, App){
-        var app = new App();
-        window.app = app;
-        window.router = new Router();
-        Backbone.history.start();
-        
+    
+    require(['backbone','./Router/router', './Views/App'],
+        function(Backbone, Router, App){
+            var app = new App();
+            window.app = app;
+            window.router = new Router();
+            Backbone.history.start();
+    });
 });

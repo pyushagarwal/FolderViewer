@@ -6,12 +6,10 @@ const errorMessage = require("../errorMessage");
 var Folder = require('../models/folder');
 var User = require('../models/user');
 var winston = require('winston');
-var logger = winston.loggers.get('main');
+var logger = require('../configurelog')();
 
 /*Retrieve contents of a folder*/
 router.get('/:id?',function(req, res, next){
-    // var filePath = getFilePath(req);
-
     var userId = req.user;
     var fileId = req.params.id;
 
@@ -21,9 +19,6 @@ router.get('/:id?',function(req, res, next){
         return userHasAccess(fileId, req.user, "READ", res);
     })
     .then(function(fileInfo){
-        if(!fileInfo){
-            return;
-        }
         var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
         fs.readdir(fullFilePath, fileInfo)
         .then(function(files){  
@@ -35,15 +30,22 @@ router.get('/:id?',function(req, res, next){
                     "$in": files
                 }}, {
                     _id: true,
-                    name: true
+                    name: true,
+                    modified_by: true,
+                    modified_on: true
                 })
-            .exec();
+            .populate({ path: 'modified_by', select: 'name' }).exec();
         })
-        .then(response => res.status(200).json({
-           id: fileInfo.id,
-           name: fileInfo.name,
-           files: response
-        }))
+        .then(function(response) {
+            response.forEach(children => {
+                children.name = getFileName(fileInfo.name, children.name);  
+            });
+            res.status(200).json({
+                id: fileInfo.id,
+                name: fileInfo.name,
+                files: response 
+            });
+        })
         .catch(function(err){
             if(err && err.code === "ENOTDIR"){
                 res.status(400).send({
@@ -59,9 +61,9 @@ router.get('/:id?',function(req, res, next){
 
 /* Rename a given folder path */
 router.put('/:id', function(req, res, next){
-    if(req.body.name){
+    if(req.body && req.body.name){
         renameFile(req, res, next);
-    } else if(req.body.shared_with &&  req.body.shared_with.length > 0){
+    } else if(req.body && req.body.shared_with &&  req.body.shared_with.length > 0){
         grantPermissions(req, res, next);
     } 
     else {
@@ -74,11 +76,6 @@ function grantPermissions(req, res, next){
     var userId = req.user;
     userHasAccess(fileId, req.user, "GRANT", res)
     .then(function(fileInfo){
-        if(!fileInfo){
-            throw null;
-            return;
-        }
-
         var IdOfUsers = req.body.shared_with.map(user => {
             return user.user_id
         });
@@ -122,9 +119,6 @@ function renameFile(req, res, next) {
     var userId = req.user;
     var promise =  userHasAccess(fileId, req.user, "WRITE", res);
     promise.then(function(fileInfo){
-        if(!fileInfo){
-            return;
-        }
         if ( fileInfo.name === userId ) {
             return res.status(400).json({
                 error : errorMessage.ROOT_DIR_CANNOT_BE_RENAMED     
@@ -153,7 +147,6 @@ function renameFile(req, res, next) {
                 })
             }
             else{
-                logger.error(err instanceof String);
                 next(err);
             }
         });
@@ -177,9 +170,6 @@ router.post('/', function(req, res, next){
         return userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
     })
     .then( function(parentFileInfo) {
-        if(!parentFileInfo){
-            return;
-        }
         var fileName = req.body['name'];
         var dataDirectory = req.app.get('DATA_DIRECTORY');
         var newFilePath = path.join(parentFileInfo.name, fileName);
@@ -228,9 +218,6 @@ router.delete('/:id', function(req, res, next){
     var fileId = req.params.id
     var promise = userHasAccess(fileId, userId, "DELETE", res);
     promise.then(function(fileInfo){
-        if(!fileInfo){
-            return;
-        }
         if(fileInfo.is_root) {
             res.status(400).json({
                 error: 'Root directory cannot be deleted'
@@ -257,16 +244,22 @@ router.use(function(req, res){
     res.status(404).send();
 });
 
-router.use(function(err, req, res){
-    logger.error('Following error occurred');
-    logger.error(err);
+/*Error handler*/
+router.use(function(err, req, res, next){
     if(!res.headersSent){
-        res.status(500).send({
-            error: {
-                message: error.message,
-                stacktrace: error.stacktrace
-            }
-        });
+        if(err.message ===  errorMessage.FORBIDDEN_RESOURCE){
+            res.status(403).send({
+                error: errorMessage.FORBIDDEN_RESOURCE
+            })
+        } else {
+            logger.error(err);
+            res.status(500).send({
+                error: {
+                    message: err.message,
+                    stacktrace: err.stacktrace
+                }
+            });
+        }
     }
 });
 
@@ -316,10 +309,7 @@ var userHasAccess = function(fileId, userId, action, res, fieldsToBeReturned){
         if(fileInfo){
             return fileInfo;
         } else {
-            res.status(403).send({
-                error: errorMessage.FORBIDDEN_RESOURCE
-            });
-            return null;
+            throw new Error(errorMessage.FORBIDDEN_RESOURCE)
         }
     });
 }
@@ -345,6 +335,14 @@ var getFileIdOfRootUser = function(fileId, userId){
             resolve(fileId);
         }
     });
+}
+
+/*
+**/
+var getFileName = function(parentPath, childPath){
+   var fileName = childPath.replace(parentPath,'');
+   fileName = fileName.replace('/','');
+   return fileName;
 }
 
 module.exports = router;

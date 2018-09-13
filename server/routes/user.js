@@ -3,10 +3,11 @@ var router = express.Router();
 var User = require('../models/user');
 var ERROR_MESSAGE = require('../errorMessage');
 var Folder = require('../models/folder');
-var fs = require("fs");
+var fs = require("fs-extra");
 var path = require("path");
+var logger = require('../configurelog')();
 
-router.get('/', function(req, res){
+router.get('/', function(req, res, next){
     User.find()
     .then((result) => res.status(200).send(result.map(function(row){
         return {
@@ -15,6 +16,7 @@ router.get('/', function(req, res){
             id: row.id
         }
     })))
+    .catch(next);
 });
 
 router.get('/:id', function(req, res, next){
@@ -28,6 +30,7 @@ router.get('/:id', function(req, res, next){
             id: row.id
         }
     })[0]))
+    .catch(next);
 });
 
 router.delete('/:id', function(req, res, next){
@@ -36,10 +39,11 @@ router.delete('/:id', function(req, res, next){
     })
     .then(()=> res.status(200).json({
         deleted : true
-    }));
+    }))
+    .catch(next);
 });
 
-router.post('/', function(req, res){
+router.post('/', function(req, res, next){
     var user = new User({
         email: req.body.email,
         password: req.body.password,
@@ -54,34 +58,37 @@ router.post('/', function(req, res){
             }else{
                 errMsg = ERROR_MESSAGE.BAD_REQUEST;
             }
-            console.log(err);
+            logger.error(err);
             return res.status(400).json({status : 400, error: errMsg });
         }
         else{
-            createNewFolderForUser(req, res, user)
+            createNewFolderForUser(req, res, user, next)
         }
     });
 });
 
-function createNewFolderForUser(req, res, user){
+function createNewFolderForUser(req, res, user, next){
     var directoryPath = req.app.get('DATA_DIRECTORY');
     var dirName = user.id;
 
-    // make this async in the future
-    fs.mkdirSync(path.join(directoryPath, dirName));
-    
-    // Create a entry for a new folder in folder schema
-    var folder = new Folder({
-        name: user.id,
-        is_root: true,
-        created_by: user.id,
-        modified_by: user.id,
-        shared_with: [{
-            user_id: user.id,
-            action: 'GRANT'
-        }]
-    });
-    folder.save().then(function(){
+    fs.mkdir(path.join(directoryPath, dirName))
+    .then(function(){
+        // Create a entry for a new folder in folder schema
+        var folder = new Folder({
+            name: user.id,
+            is_root: true,
+            created_by: user.id,
+            modified_by: user.id,
+            shared_with: [{
+                user_id: user.id,
+                action: 'GRANT'
+            }]
+        });
+        return folder.save();
+    })
+    .then(function(folder){
+        logger.debug(folder.id);
+        logger.debug(folder.name);
         return User.update({_id: user.id},{
             $set : {
                 files: [{
@@ -98,12 +105,20 @@ function createNewFolderForUser(req, res, user){
             id: user.id
         });
     })
-    .catch(function(){
-        res.status(500).json({
-            'error': err
-        });
-    });
-
+    .catch(next);
 }
+
+/*Error handler*/
+router.use(function(err, req, res, next){
+    if(!res.headersSent){
+        logger.error(err);
+        res.status(500).send({
+            error: {
+                message: err.message,
+                stacktrace: err.stacktrace
+            }
+        });
+    }
+});
 
 module.exports = router;

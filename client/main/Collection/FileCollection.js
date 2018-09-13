@@ -7,9 +7,13 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         currentId : 1,
         
         fetchData : function(url){
-            this.url = url
-            this.fetch().fail(function(){
-                console.log(arguments);
+            this.url = url;
+            this.sync('read',this)
+            .then(_.bind(function(response){
+                this.add(response.files);
+            }, this))
+            .catch(function(error){
+                console.log(error);
             });
         },
 
@@ -31,23 +35,24 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
             }
         },
 
-        /*
-        params: FolderNameWhichWasClicked , type = Model
+        /**Fetch the contents of a folder
+        *@param fileModel model
         */
-        fetchFolderContents : function(FolderNameWhichWasClicked){
+        fetchFolderContents : function(fileModel){
             this.currentId = 1;
-            if(FolderNameWhichWasClicked){
-                var file_name = FolderNameWhichWasClicked.get('file_name');
+            var fileId;
+            if(fileModel){
+                fileId = fileModel.get('_id');
             }
-            var newUrl = this.createURL(Backbone.history.fragment, file_name);
+            var newFragment = this.createURL(Backbone.history.fragment, fileId);
             
             /*Update the fragment url with the path of the folder
             trigger:false does not trigger the backbone route 
             */
             router.navigate(newUrl, {trigger: false});
             
-            var newUrl = this.createURL(app.getApiUrl(), newUrl);
-            this.reset()
+            var newUrl = this.createURL(app.getApiUrl(), newFragment);
+            this.reset();
             this.fetchData(newUrl);
         }
 

@@ -9,8 +9,12 @@ define(["backbone",
             // this.on("backgrid:editing", this.editMode)
         },
         
+        /**Checks whether a filename represents a folder or a file
+        * @param filename String indicating the name of the file
+        * @returns A boolean value 
+        */
         isAFile : function (filename) {
-            var filename = this.get("file_name");
+            var filename = this.get("name");
             var fileExtension =  filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
             if(fileExtension){
                 return true;

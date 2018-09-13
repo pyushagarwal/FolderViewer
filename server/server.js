@@ -11,22 +11,7 @@ const path = require('path');
 var fs = require('fs-extra');
 var config = PropertiesReader('server.ini');
 
-const winston = require('winston');
-const format = winston.format;
-
-// var logger = winston.createLogger();
-
-var logger = winston.loggers.add('main', {
-  format: format.combine(
-    format.timestamp(),
-    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'server.log'})
-  ],
-  level: config.get('LOG_LEVEL') | 'info'
-});
+var logger = require('./configurelog')(config.get('LOG_LEVEL'));
 
 mongoose.connection = (function(){
   var MONGOOSE_OPTIONS = {

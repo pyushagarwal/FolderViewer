@@ -4,19 +4,35 @@
         <link rel="stylesheet" type="text/css" href="Css/index.css"/>
         <link rel="stylesheet" type="text/css" href="../Vendor/Css/bootstrap.css">
         <link rel="stylesheet" type="text/css" href="../Vendor/Css/backgrid.css">
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/backgrid-select-all.css">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
         <script data-main="main.js" src="../Vendor/Scripts/require.js"></script>
     </head>
     <body>
-            <div id="HeadingDiv">
-                <h1> Filesss List</h1>
+        <div id="main-container">
+            <div id="head-container">
+                <h2>Folder Viewer<h2>
             </div>
-            <div id="BodyDiv" class="container-fluid">
-                <div class ="row">
-                    <div id="LeftDiv" class="col" style="background:red;"></div>
-                    <div id="FileContainer" class="col-8"></div>
-                    <div id="RightDiv" class="col" style="background:powderblue;"></div>
+            <div id="body-container">  
+                <div id="left-pane">
+                    <ul class="list-group">
+                        <li class="list-group-item">My Folders</li>
+                        <li class="list-group-item">Shared With Me</li>
+                        <li class="list-group-item">Trash</li> 
+                    </ul>
+                </div>
+                <div id="content-pane"></div>
+                <div id="actions-pane">
+                    <ul class="list-group">
+                        <li class="list-group-item">Add Folder</li>
+                        <li class="list-group-item">Upload</li>
+                        <li class="list-group-item">Delete</li>
+                        <li class="list-group-item">Share</li>
+                        <li class="list-group-item">Rename</li>
+                        <li class="list-group-item">Download</li>
+                    </ul>
                 </div>
             </div>
+        </div>
     </body>
 </html>

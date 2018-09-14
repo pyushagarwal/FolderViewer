@@ -7,8 +7,14 @@
 */
 (function (root, factory) {
 
+  if (typeof define === "function" && define.amd) {
+    // AMD (+ global for extensions)
+    define(['backbone','backgrid'], function (Backbone, Backgrid) {
+      return (root.tmp = factory(Backbone, Backgrid));
+    });
+  }
   // CommonJS
-  if (typeof exports == "object") {
+  else if (typeof exports == "object") {
     module.exports = factory(require("backbone"), require("backgrid"));
   }
   // Browser
@@ -271,4 +277,5 @@
     }
   };
 
+  return {};
 }));

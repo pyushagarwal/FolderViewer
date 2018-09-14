@@ -342,6 +342,7 @@ var getFileIdOfRootUser = function(fileId, userId){
 var getFileName = function(parentPath, childPath){
    var fileName = childPath.replace(parentPath,'');
    fileName = fileName.replace('/','');
+   fileName = fileName.replace('\\',''); 
    return fileName;
 }
 

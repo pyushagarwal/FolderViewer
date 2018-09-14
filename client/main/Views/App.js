@@ -3,18 +3,22 @@ define(['backbone',
         'Views/BackgridRow',
         '../Collection/FileCollection',        
         'Views/BarIconView',
-        'moment'
+        'moment',
+        'backgrid-select-all',
+        'Views/ActionView'
     ], 
     function(Backbone, 
             BackGrid,
             BackgridRow,
             FileCollection,
             BarIconView,
-            Moment
+            Moment,
+            BackgridSelectAll,
+            ActionView
         ){
     
     return Backbone.View.extend({
-        el : "#FileContainer",
+        el : "#content-pane",
         
         /*custom variables*/
 
@@ -28,11 +32,19 @@ define(['backbone',
             this.grid = null;
             this.fileCollection = new FileCollection();
             this.createGrid();
+            this.actionView = new ActionView(this.grid);
         },
 
         createGrid : function(){
             var columns = [
                 {
+                    // name is a required parameter, but you don't really want one on a select all column
+                    name: "",
+                    // Backgrid.Extension.SelectRowCell lets you select individual rows
+                    cell: Backgrid.Extension.SelectRowCell,
+                    // Backgrid.Extension.SelectAllHeaderCell lets you select all the row on a page
+                    headerCell: Backgrid.Extension.SelectAllHeaderCell
+                }, {
                     name: "id", // The key of the model attribute
                     label: "ID", // The name to display in the header
                     sortType: "toggle",

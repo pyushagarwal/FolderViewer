@@ -13,13 +13,13 @@ logger.transports[0].silent = true;
 var agent = chai.request.agent(app);
 describe('Folders API', function(){
 
+    //This sets timeout for each mocha test case.    
     this.timeout(3000);
     
+    /*This ensures that the tests start executing only after the database
+    connection is succesfully established. We assume that the connection is established within 2000 ms*/
     before(function(done) {
         setTimeout(function(){
-            // if(mongoose.connection.readyState == 1){
-            //     done();
-            // }
             done();
         }, 2000);
     });

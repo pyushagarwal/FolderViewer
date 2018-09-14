@@ -1,13 +1,53 @@
-#HeadingDiv{
-    width : 100%;
-    background: orange;
-    height: 50px;
-
+#main-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height:100%;
+    /* background: yellow; */
 }
 
-#FileContainer{
-    padding : 100px;
-    width : 100%;
-    font-family: sans-serif;
-    /* background : yellow; */
+#head-container{
+    flex-grow: 2;
+    background: lightblue;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+#body-container{
+    flex-grow: 8;
+    /* background: lightseagreen; */
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#left-pane{
+    flex-grow: 1;
+    height: inherit;
+    background:lightcoral;
+}
+
+#content-pane{
+    flex-grow: 5;
+    height: inherit;
+}
+
+#actions-pane{
+    flex-grow: 2;
+    height: inherit;
+    background:lightcoral;
+}
+
+.list-group .list-group-item{
+    text-align: center;
+}
+.list-group {
+    margin: 10px;
+}
+/* #FileContainer{
+    width : 100%;
+    background : yellow;
+    height: 100%;
+} */

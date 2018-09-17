@@ -16,7 +16,14 @@ router.get('/:id?',function(req, res, next){
     var promise = getFileIdOfRootUser(fileId, userId);
 
     promise.then(function(fileId){
-        return userHasAccess(fileId, req.user, "READ", res);
+        var fieldsToBeReturned = {
+            shared_with: { 
+                    $elemMatch: { 
+                        user_id: req.user
+                    }
+            }
+        }
+        return userHasAccess(fileId, req.user, "READ", res, fieldsToBeReturned);
     })
     .then(function(fileInfo){
         var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
@@ -32,7 +39,13 @@ router.get('/:id?',function(req, res, next){
                     _id: true,
                     name: true,
                     modified_by: true,
-                    modified_on: true
+                    modified_on: true,
+                    shared_with: true
+                    // shared_with: { 
+                    //     $elemMatch: { 
+                    //         user_id: userId
+                    //     }
+                    // }
                 })
             .populate({ path: 'modified_by', select: 'name' }).exec();
         })
@@ -43,7 +56,8 @@ router.get('/:id?',function(req, res, next){
             res.status(200).json({
                 id: fileInfo.id,
                 name: fileInfo.name,
-                files: response 
+                permission: fileInfo.shared_with[0].action,
+                files: response
             });
         })
         .catch(function(err){

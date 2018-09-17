@@ -11,6 +11,13 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
             this.sync('read',this)
             .then(_.bind(function(response){
                 this.add(response.files);
+                
+                app.currentFolder = {
+                    name : response.name,
+                    _id: response.id,
+                    permission: response.permission
+                }
+
             }, this))
             .catch(function(error){
                 console.log(error);
@@ -19,7 +26,10 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
 
         initialize : function(){
             this.listenTo(window.event_bus, "fetchFolderContents", this.fetchFolderContents);
-            this.on("add", this.setIdInModel)
+            this.on("add", this.setIdInModel);
+            this.on("backgrid:select-all", function(collection, checked){
+                window.event_bus.trigger('rowSelected', collection, checked);
+            });
         },
 
         setIdInModel: function(model){

@@ -58,7 +58,8 @@ router.post('/login', function(req, res, next){
             //console.log(`req.user: ${JSON.stringify(req.user)}`);
             return res.status(200).send({
                 status : 200,
-                message : 'loggedin'
+                message : 'loggedins',
+                user_id: user._id
             });
         });
 

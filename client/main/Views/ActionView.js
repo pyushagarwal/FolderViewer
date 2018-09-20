@@ -14,45 +14,70 @@ function(Backbone, languageConstants){
             }
         },
 
-        /**Display the relevant actions for the model
+        events:{
+            'click li': 'performAction'
+        },
+        
+        
+        performAction: function(e){
+            var action = e.target.dataset.action;
+            if(action === "rename"){
+                var selectedModelsArray = this.grid.getSelectedModels();
+                var selectedIndex = selectedModelsArray[0];
+                this.grid.body.rows[0].cells[3].enterEditMode();
+            }
+        },
+
+
+        /**Display the relevant actions for the selected files
         *@param model : Backbone.Model
         *@param checked : Boolean
         */
-        showActions: function(selectedModels, checked){
-            // var selectedModels = this.grid.getSelectedModels();
-            // selectedModels.add(model);
-            
-            var cumulativeAction = 3;
+        showActions: function(model, checked){
+            var selectedModelsArray = this.grid.getSelectedModels();
+            var selectedModelsCollection = new Backbone.Collection(selectedModelsArray);
+            if(checked){
+                selectedModelsCollection.add(model);
+            } else {
+                selectedModelsCollection.remove(model);
+            }
+            var cumulativeAction = 10;
 
-            selectedModels.forEach(function(model){
-                var userId = model.get('_id');
-                var sharedWith = _.find(model.get('shared_with'), function(permission){
-                    return permission.user_id === userId; 
+            selectedModelsCollection.forEach(function(model){
+                var idOfCurrentUser = document.cookie.split(';')[0].split('=')[1];
+                var userPermission = _.find(model.get('shared_with'), function(permission){
+                    return permission.user_id === idOfCurrentUser; 
                 });
-                var action = sharedWith.action[0];
-                cumulativeAction = min(ACTIONS[action], cumulativeAction);
-            });
+                var action = userPermission.action[0];
+                cumulativeAction = Math.min(this.ACTIONS[action], cumulativeAction);
+            }, this);
 
-            this.renderActionsOnScreen(cumulativeAction);
+            if(cumulativeAction == 10){
+                cumulativeAction = this.ACTIONS.READ;
+            }
+            this.renderActionsOnScreen(cumulativeAction, selectedModelsCollection);
         },
 
-        renderActionsOnScreen: function(cumulativeAction){
+        renderActionsOnScreen: function(cumulativeAction, selectedModelsCollection){
             var $ul = this.$el.find('ul');
             $ul.empty();
 
             /*If the root folder has permission to add folder and upload,then show it */
             if(this.ACTIONS[app.currentFolder.permission] >= 1){
-                $ul.append(`<li class="list-group-item">${languageConstants.ADD_FOLDER}</li>`);
+                $ul.append(`<li class="list-group-item" data-action="addfolder" >${languageConstants.ADD_FOLDER}</li>`);
                 $ul.append(`<li class="list-group-item">${languageConstants.UPLOAD}</li>`);
+                if(selectedModelsCollection.size() === 1){
+                    $ul.append(`<li class="list-group-item" data-action="rename">${languageConstants.RENAME}</li>`);
+                }
             }
 
-            if(this.ACTIONS[cumulativeAction] >= 0){
+            if(cumulativeAction >= 0 && selectedModelsCollection.size() == 1){
                 $ul.append(`<li class="list-group-item">${languageConstants.DOWNLOAD}</li>`);    
             }
-            if(this.ACTIONS[cumulativeAction] >= 2){
+            if(cumulativeAction >= 2){
                 $ul.append(`<li class="list-group-item">${languageConstants.DELETE}</li>`);    
             }
-            if(this.ACTIONS[cumulativeAction] == 3){
+            if(cumulativeAction == 3){
                 $ul.append(`<li class="list-group-item">${languageConstants.SHARE}</li>`);    
             }
 

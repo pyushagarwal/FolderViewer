@@ -43,6 +43,7 @@ define(['backbone',
             if(areFormFieldsValid){
                 this.user.login().then(function(respBody, success, response){
                     if(response.status == 200){
+                        document.cookie = `user_id=${respBody.user_id};path=/`;
                         window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
                     }
                 }).catch(_.bind(function(error){

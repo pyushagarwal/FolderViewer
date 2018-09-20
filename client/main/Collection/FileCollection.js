@@ -18,6 +18,8 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
                     permission: response.permission
                 }
 
+                window.event_bus.trigger("rowSelected");
+
             }, this))
             .catch(function(error){
                 console.log(error);
@@ -27,7 +29,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         initialize : function(){
             this.listenTo(window.event_bus, "fetchFolderContents", this.fetchFolderContents);
             this.on("add", this.setIdInModel);
-            this.on("backgrid:select-all", function(collection, checked){
+            this.on("backgrid:selected", function(collection, checked){
                 window.event_bus.trigger('rowSelected', collection, checked);
             });
         },

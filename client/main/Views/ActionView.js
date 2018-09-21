@@ -1,6 +1,8 @@
 define(['backbone',
-    '../languageConstants.js'], 
-function(Backbone, languageConstants){
+    '../languageConstants.js',
+    '../Models/FileModel'
+], 
+function(Backbone, languageConstants, FileModel){
     return Backbone.View.extend({
         initialize: function(backgrid){
             this.grid = backgrid
@@ -15,16 +17,54 @@ function(Backbone, languageConstants){
         },
 
         events:{
-            'click li': 'performAction'
+            'click a': 'performAction'
         },
         
-        
-        performAction: function(e){
+        /** This is the click event handler for each anchor tag
+        *@param e JqueryEventObject
+         */
+        performAction: function(e) {
+            e.preventDefault();
             var action = e.target.dataset.action;
-            if(action === "rename"){
+            if(action === "rename") {
                 var selectedModelsArray = this.grid.getSelectedModels();
-                var selectedIndex = selectedModelsArray[0];
-                this.grid.body.rows[0].cells[3].enterEditMode();
+                if(selectedModelsArray.length !== 1){
+                    console.log('only 1 file can be renamed at a time');
+                }
+
+                this.grid.body.rows.forEach( function(backgridRow){
+                    if(backgridRow.model === selectedModelsArray[0]){
+                        backgridRow.cells[3].enterEditMode();
+                        window.event_bus.trigger('fileEdit', backgridRow.model);
+                    }
+                })
+            }
+
+            else if(action === "add"){
+                var file = new FileModel({
+                    "_id": "",
+                    "name": "",
+                    "modified_by": {
+                        "_id": "",
+                        "name": ""
+                    },
+                    "shared_with": [
+                        {
+                            "action": [
+                                "GRANT"
+                            ],
+                            "user_id": ""
+                        }
+                    ],
+                    "modified_on": Date.now()
+                })
+                this.grid.collection.add(file);
+                this.grid.body.rows.forEach( function(backgridRow){
+                    if(backgridRow.model === file){
+                        backgridRow.cells[3].enterEditMode();
+                        window.event_bus.trigger('fileEdit', backgridRow.model);
+                    }
+                });
             }
         },
 
@@ -62,23 +102,24 @@ function(Backbone, languageConstants){
             var $ul = this.$el.find('ul');
             $ul.empty();
 
+            var attributes= 'class="list-group-item list-group-item-action" href="#"'
             /*If the root folder has permission to add folder and upload,then show it */
             if(this.ACTIONS[app.currentFolder.permission] >= 1){
-                $ul.append(`<li class="list-group-item" data-action="addfolder" >${languageConstants.ADD_FOLDER}</li>`);
-                $ul.append(`<li class="list-group-item">${languageConstants.UPLOAD}</li>`);
+                $ul.append(`<a ${attributes} data-action="add"  >${languageConstants.ADD_FOLDER}</a>`);
+                $ul.append(`<a ${attributes} > ${languageConstants.UPLOAD}</a>`);
                 if(selectedModelsCollection.size() === 1){
-                    $ul.append(`<li class="list-group-item" data-action="rename">${languageConstants.RENAME}</li>`);
+                    $ul.append(`<a ${attributes}  data-action="rename"> ${languageConstants.RENAME}</a>`);
                 }
             }
 
             if(cumulativeAction >= 0 && selectedModelsCollection.size() == 1){
-                $ul.append(`<li class="list-group-item">${languageConstants.DOWNLOAD}</li>`);    
+                $ul.append(`<a ${attributes} >${languageConstants.DOWNLOAD}</a>`);    
             }
             if(cumulativeAction >= 2){
-                $ul.append(`<li class="list-group-item">${languageConstants.DELETE}</li>`);    
+                $ul.append(`<a ${attributes} >${languageConstants.DELETE}</a>`);    
             }
             if(cumulativeAction == 3){
-                $ul.append(`<li class="list-group-item">${languageConstants.SHARE}</li>`);    
+                $ul.append(`<a ${attributes} > ${languageConstants.SHARE}</a>`);    
             }
 
         }

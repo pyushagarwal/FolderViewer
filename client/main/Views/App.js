@@ -79,14 +79,23 @@ define(['backbone',
                     label: "Name",
                     sortType: "toggle",
                     // The cell type can be a reference of a Backgrid.Cell subclass, any Backgrid.Cell subclass instances like *id* above, or a string
-                    cell: Backgrid.Cell.extend({
-                        events: {
-                            'click': 'onClick'
+                    cell: Backbone.View.extend({
+                        
+                        tagName : "td",
+
+                        render: function(){
+                            this.$el.html(this.model.get('name'));
+                            return this;
                         },
-                        // stop the default behaviour of Cell class to enter editmode on clicking;
-                        onClick(e){}
+
+                        enterEditMode: function(){
+                            this.$el.empty();
+                            var name = this.model.get('name');
+                            this.$el.html(`<input class="form-control form-control-sm" value="${name}">`);  
+                        }
+
                     }), // This is converted to "StringCell" and a corresponding class in the Backgrid package namespace is looked up
-                    editable: true
+                    editable: false
                 }, {
                     name: "modified_on",
                     label: "Date Modified",
@@ -124,8 +133,45 @@ define(['backbone',
                     label: "", // The name to display in the header
                     editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
                     // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
+                    cell: Backbone.View.extend({
+                        tagName : "td",
+
+                        events:{
+                            'click button': 'saveModel'
+                        },
+
+                        render : function(){
+                            
+                            this.listenTo(window.event_bus,'fileEdit', function(model){
+                                if(this.model === model){
+                                    var $button = $(this.$el.find('button')[0]);
+                                    $button.css('display','');    
+                                }
+                            });
+
+                            this.$el.html('<button type="button" class="btn btn-outline-primary btn-sm" style="display:None;">Save</button>');
+                            return this;
+                        },
+
+                        saveModel: function(){
+                            var $button = $(this.$el.find('button')[0]);
+                            $button.css('display','None');
+                            this.model.renameFile(this, function(error){
+                                if(!error){
+                                    this.model.rowView.cells[3].exitEditmode();
+                                }     
+                            });
+                            return false;
+                        }
+                    }),
+                },
+                {
+                    name: "", // The key of the model attribute
+                    label: "", // The name to display in the header
+                    editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
+                    // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
                     cell: BarIconView
-                }
+                }, 
             ];
             
             this.grid = new BackGrid.Grid({

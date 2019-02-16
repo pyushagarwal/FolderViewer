@@ -15,6 +15,8 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
                 app.currentFolder = {
                     name : response.name,
                     _id: response.id,
+                    parent_id: response.parent_id,
+                    is_root: response.is_root,
                     permission: response.permission
                 }
 
@@ -35,7 +37,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         },
 
         setIdInModel: function(model){
-            model.set("id", this.currentId);
+            model.set("position", this.currentId);
             this.currentId += 1;
         },
 
@@ -56,14 +58,14 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
             if(fileModel){
                 fileId = fileModel.get('_id');
             }
-            var newFragment = this.createURL(Backbone.history.fragment, fileId);
+            // var newFragment = this.createURL(Backbone.history.fragment, fileId);
             
             /*Update the fragment url with the path of the folder
             trigger:false does not trigger the backbone route 
             */
-            router.navigate(newUrl, {trigger: false});
+            // router.navigate(newUrl, {trigger: false});
             
-            var newUrl = this.createURL(app.getApiUrl(), newFragment);
+            var newUrl = this.createURL(app.getApiUrl(), fileId);
             this.reset();
             this.fetchData(newUrl);
         }

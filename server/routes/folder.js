@@ -21,7 +21,9 @@ router.get('/:id?',function(req, res, next){
                     $elemMatch: { 
                         user_id: req.user
                     }
-            }
+            },
+            parent_id: 1,
+            is_root: 1
         }
         return userHasAccess(fileId, req.user, "READ", res, fieldsToBeReturned);
     })
@@ -57,6 +59,8 @@ router.get('/:id?',function(req, res, next){
                 id: fileInfo.id,
                 name: fileInfo.name,
                 permission: fileInfo.shared_with[0].action,
+                parent_id: fileInfo.parent_id,
+                is_root: fileInfo.is_root,
                 files: response
             });
         })
@@ -179,7 +183,7 @@ router.post('/', function(req, res, next){
     var userId = req.user;
 
     var promise = getFileIdOfRootUser(parentFileId, userId);
-
+    
     promise.then(function(parentFileId){
         return userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
     })
@@ -208,13 +212,33 @@ router.post('/', function(req, res, next){
                 created_by: userId,
                 modified_by: userId,
                 shared_with: shared_with,
-                is_root: false
+                is_root: false,
+                parent_id: parentFileInfo.id
             });
 
-            return folder.save().then((newFileInfo) => res.status(201).json({
-                name: newFileInfo.name,
-                id: newFileInfo._id
-            }));
+            return folder.save().then(function(newFileInfo) {
+
+                newFileInfo.populate({ 
+                    path: 'modified_by',
+                    select: 'name' 
+                }).populate({ 
+                    path: 'created_by',
+                    select: 'name' 
+                })
+                .execPopulate().then(function(){
+                    logger.info("hello"); 
+                    logger.info(newFileInfo);
+                    res.status(201).json({
+                        name: fileName,
+                        _id: newFileInfo._id,
+                        created_by: newFileInfo.created_by,
+                        modified_by: newFileInfo.modified_by,
+                        shared_with: newFileInfo.shared_with,
+                        is_root: newFileInfo.is_root,
+                        parent_id: newFileInfo.parent_id
+                    });
+                })
+            });
         })
         .catch(function(err){
             if(err && err.code === 'EEXIST'){

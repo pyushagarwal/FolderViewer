@@ -45,7 +45,7 @@ define(['backbone',
                     // Backgrid.Extension.SelectAllHeaderCell lets you select all the row on a page
                     headerCell: Backgrid.Extension.SelectAllHeaderCell
                 }, {
-                    name: "id", // The key of the model attribute
+                    name: "position", // The key of the model attribute
                     label: "ID", // The name to display in the header
                     sortType: "toggle",
                     editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
@@ -91,7 +91,18 @@ define(['backbone',
                         enterEditMode: function(){
                             this.$el.empty();
                             var name = this.model.get('name');
-                            this.$el.html(`<input class="form-control form-control-sm" value="${name}">`);  
+                            this.$el.html(`<input class="form-control form-control-sm" value="${name}"> <div class='name_error'></div>`);  
+                        },
+
+                        exitEditMode: function(){
+                            this.$el.empty();
+                            var name = this.model.get('name');
+                            this.$el.html(name);  
+                        },
+
+                        showErrorMessage: function(error){
+                            this.$el.find('.name_error').html(error.error);
+                            $(this.$el.find('input')).css('border', '2px solid red');
                         }
 
                     }), // This is converted to "StringCell" and a corresponding class in the Backgrid package namespace is looked up
@@ -137,13 +148,14 @@ define(['backbone',
                         tagName : "td",
 
                         events:{
-                            'click button': 'saveModel'
+                            'click button': 'saveName'
                         },
 
                         render : function(){
                             
-                            this.listenTo(window.event_bus,'fileEdit', function(model){
-                                if(this.model === model){
+                            this.listenTo(window.event_bus,'fileEdit', function(backgridRow){
+                                if(this.model === backgridRow.model){
+                                    this.model.rowView = backgridRow;
                                     var $button = $(this.$el.find('button')[0]);
                                     $button.css('display','');    
                                 }
@@ -152,15 +164,19 @@ define(['backbone',
                             this.$el.html('<button type="button" class="btn btn-outline-primary btn-sm" style="display:None;">Save</button>');
                             return this;
                         },
-
-                        saveModel: function(){
-                            var $button = $(this.$el.find('button')[0]);
-                            $button.css('display','None');
-                            this.model.renameFile(this, function(error){
+                        
+                        saveName: function(){
+                            var newName = $(this.model.rowView.cells[3].$el.find('input')).val();
+                            this.model.renameFile(newName, _.bind(function(error){
                                 if(!error){
-                                    this.model.rowView.cells[3].exitEditmode();
-                                }     
-                            });
+                                    var $button = $(this.$el.find('button')[0]);
+                                    $button.css('display','None');
+                                    this.model.rowView.cells[3].exitEditMode();
+                                    app.grid.sort('id', null);
+                                } else {
+                                    this.model.rowView.cells[3].showErrorMessage(error);
+                                }
+                            }, this));
                             return false;
                         }
                     }),

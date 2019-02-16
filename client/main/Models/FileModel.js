@@ -8,6 +8,23 @@ define(["backbone",
             this.on("backgrid:edited", this.renameFile);
         },
         
+        defaults: {
+            name: "",
+            modified_by: {
+                _id: "",
+                name: ""
+            },
+            shared_with: [
+                {
+                    action: [
+                        "GRANT"
+                    ],
+                    user_id: ""
+                }
+            ],
+            modified_on: Date.now()
+        },
+
         /**Checks whether a filename represents a folder or a file
         * @param filename String indicating the name of the file
         * @returns A boolean value 
@@ -27,24 +44,30 @@ define(["backbone",
          *@param model Backbone model object
          *@param backGridRow object of type Backgrid Row
          */
-        renameFile: function(model, callback){
-            var oldFileName = model.previous('name');
+        renameFile: function(newName, callback){
+            this.set('name', newName);
+            var oldFileName = this.previous('name');
 
-            if (model.get('name') === oldFileName){ 
-                callback(null);
+            if (this.get('name') === oldFileName){ 
+                return callback(null);
             }
 
             //Check whether a folder or file_name with same name already exists
-            var isNameDuplicate = this.collection.reduce(function( oldResult , iteratorModel, ){
-                if(iteratorModel != model && iteratorModel.get('name') === model.get('name') ){
+            var isNameDuplicate = this.collection.reduce(_.bind(function( oldResult , iteratorModel ){
+                if(iteratorModel != this && iteratorModel.get('name') === this.get('name') ){
                     return true;
                 }
                 return oldResult;
-            }, false);
+            }, this), false);
             
             if(isNameDuplicate){
                 this.set('name', this.previous('name')); 
-                return;
+                return callback({ "error":" duplicate folder name" });
+            }
+
+            if(!this.previous('name')){
+                var url = '/api/file';
+                return this.createFile(url, callback);
             }
 
             var url = '/api/file/' + this.get('_id');
@@ -53,17 +76,46 @@ define(["backbone",
                 url : url,
                 type: 'PUT',
                 data: JSON.stringify({
-                    name: model.get('name')
+                    name: this.get('name')
                 }),
                 contentType: 'application/json',
                 dataType: 'json'
             })
             .then(_.bind(function(response){
+                this.set(response);
+                callback(null);
             }, this))
             .catch(_.bind(function(error){
-                this.set('name', this.previous('name')); 
+                this.set('name', this.previous('name'));
                 console.log(error);
+                callback(error);
             }, this));
+        },
+
+        createFile(url, callback) {
+            this.sync('create', this)
+            .then(_.bind(function(response){
+                this.set(response);
+                callback(null);
+            }, this))
+            .catch(function(error){
+                console.log(error);
+                callback(error);
+            });
+        },
+
+        deleteFile(callback) {
+            var oldUrl = this.url;
+            this.url += '/' + this.get('_id');
+            this.sync('delete', this)
+            .then(function(response){
+                this.url = oldUrl;
+                callback(null);
+            })
+            .catch(function(error){
+                this.url = oldUrl;
+                callback(error);
+            })
         }
     })
 });

@@ -46,8 +46,18 @@
 .list-group {
     margin: 10px;
 }
-/* #FileContainer{
-    width : 100%;
-    background : yellow;
-    height: 100%;
+#share_form {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+/* 
+#share_form > input {
+    flex-grow: 4;
+}
+#share_form > select {
+    flex-grow: 3;
+}
+#share_form > button {
+    flex-grow: 2;
 } */

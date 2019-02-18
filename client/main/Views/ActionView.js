@@ -97,9 +97,10 @@ function(Backbone, languageConstants, FileModel, ShareView){
             }
 
             else if(action === 'share') {
+                var selectedModelsArray = this.grid.getSelectedModels();
                 shareView = new ShareView();
-                shareView.render();
-                this.$el.append(shareView.template);
+                shareView.selectedModel = selectedModelsArray[0];
+                this.$el.append(shareView.render().el);
             }
         },
 
@@ -121,7 +122,7 @@ function(Backbone, languageConstants, FileModel, ShareView){
             selectedModelsCollection.forEach(function(model){
                 var idOfCurrentUser = document.cookie.split(';')[0].split('=')[1];
                 var userPermission = _.find(model.get('shared_with'), function(permission){
-                    return permission.user_id === idOfCurrentUser; 
+                    return permission.user_id._id === idOfCurrentUser; 
                 });
                 var action = userPermission.action[0];
                 cumulativeAction = Math.min(this.ACTIONS[action], cumulativeAction);
@@ -150,10 +151,10 @@ function(Backbone, languageConstants, FileModel, ShareView){
             if(cumulativeAction >= 0 && selectedModelsCollection.size() == 1){
                 $ul.append(`<a ${attributes} data-action="download">${languageConstants.DOWNLOAD}</a>`);    
             }
-            if(cumulativeAction >= 2){
+            if(cumulativeAction >= 2 && selectedModelsCollection.size() == 1){
                 $ul.append(`<a ${attributes} data-action="delete" >${languageConstants.DELETE}</a>`);    
             }
-            if(cumulativeAction == 3){
+            if(cumulativeAction == 3 && selectedModelsCollection.size() == 1){
                 $ul.append(`<a ${attributes} data-action="share"> ${languageConstants.SHARE}</a>`);    
             }
 

@@ -49,11 +49,17 @@ router.get('/:id?',function(req, res, next){
                     //     }
                     // }
                 })
-            .populate({ path: 'modified_by', select: 'name' }).exec();
+            .populate({ path: 'modified_by', select: 'name' })
+            .populate({path: 'shared_with.user_id', select:['name', 'email']}).exec();
         })
         .then(function(response) {
             response.forEach(children => {
-                children.name = getFileName(fileInfo.name, children.name);  
+                children.name = getFileName(fileInfo.name, children.name);
+                children.shared_with.forEach(function(detailsOfSharedUser){
+                    detailsOfSharedUser.name = Object.clone(detailsOfSharedUser.user_id.name);
+                    detailsOfSharedUser.email = Object.clone(detailsOfSharedUser.user_id.email);
+                    detailsOfSharedUser.user_id = detailsOfSharedUser.user_id._id;
+                })  
             });
             res.status(200).json({
                 id: fileInfo.id,

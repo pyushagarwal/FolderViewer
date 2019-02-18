@@ -19,6 +19,10 @@ requirejs.config({
         "backgrid-select-all":{
             deps: ['backbone'],
             export : ['BackgridSelectAll']
+        },
+        'backbone-modal' : {
+            deps: ['backbone', 'underscore', 'jquery'],
+            export : ['backbone-modal']            
         }
     },
     paths:{
@@ -28,7 +32,8 @@ requirejs.config({
         "text":"../Vendor/Scripts/text",
         "backgrid":"../Vendor/Scripts/backgrid",
         "moment": "../Vendor/Scripts/moment",
-        "backgrid-select-all": "../Vendor/Scripts/backgrid-select-all"
+        "backgrid-select-all": "../Vendor/Scripts/backgrid-select-all",
+        'backbone-modal': "../Vendor/Scripts/backbone.modal",
     }
 });
 

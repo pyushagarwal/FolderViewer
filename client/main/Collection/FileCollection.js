@@ -31,9 +31,16 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         initialize : function(){
             this.listenTo(window.event_bus, "fetchFolderContents", this.fetchFolderContents);
             this.on("add", this.setIdInModel);
+            this.on("add", this.modifySharedWithField);
             this.on("backgrid:selected", function(collection, checked){
                 window.event_bus.trigger('rowSelected', collection, checked);
             });
+        },
+
+        modifySharedWithField: function(model){
+            console.log('invoked');
+            var listOfSharedUsers = model.get('shared_with');
+            model.set('shared_with', new Backbone.Collection(listOfSharedUsers));
         },
 
         setIdInModel: function(model){

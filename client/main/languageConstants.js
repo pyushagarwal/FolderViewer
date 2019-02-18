@@ -5,6 +5,9 @@ define([], function(){
         RENAME: 'Rename',
         DELETE: 'Delete',
         SHARE: 'Share',
-        DOWNLOAD: 'Download'
+        DOWNLOAD: 'Download',
+        WRITE: 'Write',
+        READ: 'Read',
+        GRANT: 'Grant'
     };
 });

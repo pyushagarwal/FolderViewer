@@ -42,6 +42,27 @@ require(['backbone','underscore',"jquery"], function(Backbone, _, $){
     window.event_bus = event_bus;
     window.$ = $;
     window._ = _;
+
+    Backbone.syncModified = function(type, url, data) {
+        return new Promise(function(resolve, reject){
+            $.ajax({
+                url: url,
+                contentType: 'application/json',
+                type: type,
+                data: JSON.stringify(data)
+            }).then(function(response){
+                resolve(response);
+            }).catch(function(error){
+                if(error.status == 401) {
+                    alert('You have been logged out. Sign in again');
+                    window.location = window.location.toString().split('/').slice(0,3).join('/') + "/login";
+                }
+                else {
+                    reject(error);
+                }
+            });
+        })
+    };
     
     require(['backbone','./Router/router', './Views/App'],
         function(Backbone, Router, App){

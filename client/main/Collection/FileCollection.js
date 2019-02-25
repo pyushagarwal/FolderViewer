@@ -1,4 +1,6 @@
-define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
+define(["backbone",
+"../Models/FileModel",
+"./UsersWithAcessCollection"], function(Backbone, FileModel, UsersWithAcessCollection){
     return Backbone.Collection.extend({
         model : FileModel,
         url : "/this is not used",
@@ -7,9 +9,10 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         currentId : 1,
         
         fetchData : function(url){
-            this.url = url;
-            this.sync('read',this)
+            Backbone.syncModified('GET', url)
             .then(_.bind(function(response){
+                
+                this.reset(); 
                 this.add(response.files);
                 
                 app.currentFolder = {
@@ -24,6 +27,7 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
 
             }, this))
             .catch(function(error){
+                alert(JSON.stringify(error));
                 console.log(error);
             });
         },
@@ -38,9 +42,10 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
         },
 
         modifySharedWithField: function(model){
-            console.log('invoked');
             var listOfSharedUsers = model.get('shared_with');
-            model.set('shared_with', new Backbone.Collection(listOfSharedUsers));
+            if(!(listOfSharedUsers instanceof Backbone.Collection)) {
+               model.set('shared_with', new UsersWithAcessCollection(listOfSharedUsers), {silent:true});
+            }
         },
 
         setIdInModel: function(model){
@@ -71,9 +76,9 @@ define(["backbone", "../Models/FileModel"], function(Backbone, FileModel){
             trigger:false does not trigger the backbone route 
             */
             // router.navigate(newUrl, {trigger: false});
-            
+               
+            app.grid.clearSelectedModels();
             var newUrl = this.createURL(app.getApiUrl(), fileId);
-            this.reset();
             this.fetchData(newUrl);
         }
 

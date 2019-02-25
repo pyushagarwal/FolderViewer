@@ -5,7 +5,9 @@ define(['backbone',
         'Views/BarIconView',
         'moment',
         'backgrid-select-all',
-        'Views/ActionView'
+        'Views/ActionView',
+        'Views/UploadListView',
+        '../Models/FileModel'
     ], 
     function(Backbone, 
             BackGrid,
@@ -14,7 +16,9 @@ define(['backbone',
             BarIconView,
             Moment,
             BackgridSelectAll,
-            ActionView
+            ActionView,
+            UploadListView,
+            FileModel
         ){
     
     return Backbone.View.extend({
@@ -44,16 +48,17 @@ define(['backbone',
                     cell: Backgrid.Extension.SelectRowCell,
                     // Backgrid.Extension.SelectAllHeaderCell lets you select all the row on a page
                     headerCell: Backgrid.Extension.SelectAllHeaderCell
-                }, {
-                    name: "position", // The key of the model attribute
-                    label: "ID", // The name to display in the header
-                    sortType: "toggle",
-                    editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
-                    // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
-                    cell: Backgrid.IntegerCell.extend({
-                        orderSeparator: ''
-                    })
-                },
+                }, 
+                // {
+                //     name: "position", // The key of the model attribute
+                //     label: "ID", // The name to display in the header
+                //     sortType: "toggle",
+                //     editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
+                //     // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
+                //     cell: Backgrid.IntegerCell.extend({
+                //         orderSeparator: ''
+                //     })
+                // },
                 {
                     name: "", // The key of the model attribute
                     label: "", // The name to display in the header
@@ -166,15 +171,15 @@ define(['backbone',
                         },
                         
                         saveName: function(){
-                            var newName = $(this.model.rowView.cells[3].$el.find('input')).val();
+                            var newName = $(this.model.rowView.cells[2].$el.find('input')).val();
                             this.model.renameFile(newName, _.bind(function(error){
                                 if(!error){
                                     var $button = $(this.$el.find('button')[0]);
                                     $button.css('display','None');
-                                    this.model.rowView.cells[3].exitEditMode();
-                                    app.grid.sort('id', null);
+                                    this.model.rowView.cells[2].exitEditMode();
+                                    // app.grid.sort('id', null);
                                 } else {
-                                    this.model.rowView.cells[3].showErrorMessage(error);
+                                    this.model.rowView.cells[2].showErrorMessage(error);
                                 }
                             }, this));
                             return false;
@@ -195,10 +200,24 @@ define(['backbone',
                 columns : columns,
                 collection : this.fileCollection,
                 row : BackgridRow
+         
             });
 
-            this.$el.append(this.grid.render().el);
+            this.grid.listenTo(window.event_bus, "uploadProgress", function(fileDetails) {
+                if(fileDetails.percent == 101) {
+                    if(fileDetails.response){
+                        var fileModel = new FileModel(fileDetails.response);
+                        this.collection.add(fileModel, { at: 0});   
+                    }
+                    if(fileDetails.error) {
+                        alert(fileDetails.error.error);
+                    }
+                }
+            });
+                
 
+            this.$el.append(this.grid.render().el);
+            this.uploadListView = new UploadListView();
         }
     })
 });

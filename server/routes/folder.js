@@ -7,6 +7,102 @@ var Folder = require('../models/folder');
 var User = require('../models/user');
 var winston = require('winston');
 var logger = require('../configurelog')();
+var formidable = require('formidable');
+var util = require('util');
+
+router.post('/:id/upload', function(req, res, next){
+    var userId = req.user;
+    var parentFileId = req.params.id;
+    var promise = getFileIdOfRootUser(parentFileId, userId);
+    var fileNameFromHeader = req.headers.filename;
+    var dataDirectory = req.app.get('DATA_DIRECTORY');
+    var folderModel;
+    promise.then(function(parentFileId){
+        return userHasAccess(parentFileId, userId, "WRITE", res, {shared_with : 1});
+    })
+    .then(function(parentFileInfo){ 
+        req.shared_with = parentFileInfo.shared_with;
+        var fileNameWithPath = path.join(parentFileInfo.name, fileNameFromHeader);
+
+        folderModel = new Folder({
+            name: fileNameWithPath,
+            created_by: userId,
+            modified_by: userId,
+            shared_with: req.shared_with,
+            is_root: false,
+            parent_id: parentFileId
+        });
+        return folderModel.save();;
+    })
+    .then(function() {
+        var form = new formidable.IncomingForm();
+        form.uploadDir = path.join(dataDirectory, path.dirname(folderModel.name));
+        return new Promise(function(resolve, reject){
+            form.on('fileBegin', function(name, file){
+                file.path = path.join(form.uploadDir, fileNameFromHeader);
+            });
+            form.parse(req, function(err, fields, files){
+                if(err) {
+                    reject(err);
+                } else {
+                    // req.fileName = files.fileName.name;
+                    // resolve(path.relative(dataDirectory, files.fileName.path));
+                    resolve(null);
+                }
+            });
+        });
+    })
+    .then(function(){
+        return folderModel.populate({ 
+            path: 'modified_by',
+            select: 'name' 
+        }).populate({ 
+            path: 'created_by',
+            select: 'name' 
+        }).populate({
+            path: 'shared_with.user_id',
+            select:['name', 'email']
+        }).execPopulate();
+    })
+    .then(function(response){
+        res.status(201).json(folderDetailsToBeReturned(response));
+    })
+    .catch(function(error){
+        if(error && error.code == 11000){
+            res.status(400).json({error : errorMessage.FILE_NAME_ALREAY_EXISTS});
+        }
+        else {
+            next(error);
+        }
+    });
+});
+
+router.get('/shared', function(req, res, next) {
+    var userId = req.user;
+    User.findOne({
+        _id: userId
+    },{
+        files: 1
+    }).lean().exec()
+    .then(function(userDetails){
+        var fileIds = userDetails.files.map(function(eachFile) {
+            return eachFile.id;
+        });
+        return Folder.find({
+            _id: {
+                $in : fileIds
+            }
+        })
+        .populate({path: 'modified_by', select: 'name' })
+        .populate({path: 'shared_with.user_id', select:['name', 'email']}).lean().exec();
+    })
+    .then(function(response) {
+        res.status(200).json({
+            files: folderDetailsToBeReturned(response)  
+        });
+    })
+    .catch(next);
+});
 
 /*Retrieve contents of a folder*/
 router.get('/:id?',function(req, res, next){
@@ -29,7 +125,8 @@ router.get('/:id?',function(req, res, next){
     })
     .then(function(fileInfo){
         var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
-        fs.readdir(fullFilePath, fileInfo)
+        /* withFileTypes option is supported in node 10*/
+        fs.readdir(fullFilePath, {withFileTypes: true})
         .then(function(files){  
             files = files.map(function(fileName){
                 return path.join(fileInfo.name, fileName);
@@ -37,37 +134,18 @@ router.get('/:id?',function(req, res, next){
             return Folder.find({
                 name: {
                     "$in": files
-                }}, {
-                    _id: true,
-                    name: true,
-                    modified_by: true,
-                    modified_on: true,
-                    shared_with: true
-                    // shared_with: { 
-                    //     $elemMatch: { 
-                    //         user_id: userId
-                    //     }
-                    // }
-                })
+                }})
             .populate({ path: 'modified_by', select: 'name' })
-            .populate({path: 'shared_with.user_id', select:['name', 'email']}).exec();
+            .populate({path: 'shared_with.user_id', select:['name', 'email']}).lean().exec();
         })
         .then(function(response) {
-            response.forEach(children => {
-                children.name = getFileName(fileInfo.name, children.name);
-                children.shared_with.forEach(function(detailsOfSharedUser){
-                    detailsOfSharedUser.name = Object.clone(detailsOfSharedUser.user_id.name);
-                    detailsOfSharedUser.email = Object.clone(detailsOfSharedUser.user_id.email);
-                    detailsOfSharedUser.user_id = detailsOfSharedUser.user_id._id;
-                })  
-            });
             res.status(200).json({
                 id: fileInfo.id,
                 name: fileInfo.name,
                 permission: fileInfo.shared_with[0].action,
                 parent_id: fileInfo.parent_id,
                 is_root: fileInfo.is_root,
-                files: response
+                files: response.map(folderDetailsToBeReturned)
             });
         })
         .catch(function(err){
@@ -82,6 +160,8 @@ router.get('/:id?',function(req, res, next){
     })
     .catch(next);
 })
+
+
 
 /* Rename a given folder path */
 router.put('/:id', function(req, res, next){
@@ -98,44 +178,155 @@ router.put('/:id', function(req, res, next){
 function grantPermissions(req, res, next){
     var fileId = req.params.id;
     var userId = req.user;
+    var descendants = [];
+    var fileDetails;
     userHasAccess(fileId, req.user, "GRANT", res)
     .then(function(fileInfo){
-        var IdOfUsers = req.body.shared_with.map(user => {
-            return user.user_id
+        fileDetails = fileInfo;
+        return getAllDescendants(path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name));
+    })
+    .then(function(allDescendants){
+        descendants = allDescendants.map(function(filePath){
+            return path.relative(req.app.get('DATA_DIRECTORY'), filePath);
+        });
+
+        descendants.push(fileDetails.name);
+
+        var emailOfUsers = req.body.shared_with.map(user => {
+            return user.email;
+        });
+
+        return User.find({
+            email: {
+                "$in": emailOfUsers
+            }}, {
+                _id: true,
+                email: true
+        });
+    })
+    .then(function(usersToBeGrantedAccess){
+
+        if(usersToBeGrantedAccess.length === 0 ){
+            throw errorMessage.USER_WITH_EMAIL_ID_DOES_NOT_EXISTS
+        }
+        var emailToIdMapping = {};
+        usersToBeGrantedAccess.forEach((each)=>{
+            emailToIdMapping[each.email] = each.id;
         });
         
-        /*The permissions of the user who created it should never be modified
-        So remove the user id of the created user from the shared_with array
-        */
-
-        IdOfUsers[IdOfUsers.indexOf(fileInfo.created_by.toString())] = null;
-
+        req.body.shared_with = req.body.shared_with.map((eachUser)=>{
+            var tmp = {};
+            tmp.user_id = emailToIdMapping[eachUser.email];
+            tmp.action = eachUser.action;
+            return tmp;
+        });
         return Folder.update({
-            _id: fileId
+            "name" :{
+                $in: descendants
+                }
         },{
             $pull: {
                 'shared_with' :{
                     'user_id':{
-                        '$in' : IdOfUsers
+                        '$in' : usersToBeGrantedAccess.map((each) => {
+                                return each._id
+                            })
                         }
                 }
             }
+        },{
+            multi: true
         }).exec();
     })
     .then(function(){
+        return Folder.find({
+            name: {
+                $in: [descendants]
+            }
+        },{
+            _id: 1
+        })
+    })
+    .then(function(descendantFolderDetails){
+        console.log("171", JSON.stringify(descendantFolderDetails));
+        console.log("172 userid ", req.body.shared_with[0].user_id );
+        return User.update({
+            _id: req.body.shared_with[0].user_id
+        },{
+            $pull: {
+                files: {
+                    id:{
+                        $in: descendantFolderDetails.map((each) => { return each._id}) 
+                    }
+                }
+            }
+        })
+    })
+    .then(function(){
+        if(req.body.removeUserAccess) {
+            throw errorMessage.USER_ACCESS_REVOKED;
+        }
         var usersToBeGrantedAccess = req.body.shared_with;
         return Folder.update({
-            _id: fileId
+            "name" :{
+                $in: descendants
+                }
         },{
             $addToSet :{
                 'shared_with':{
                     $each: usersToBeGrantedAccess
                 }
             }
-        }).exec();
+        },{
+            "multi": true 
+        });
     })
-    .then( () => res.status(204).json({}))
-    .catch(next);
+    .then(function(){
+        console.log("203 userid ", req.body.shared_with[0].user_id, " fileid", fileDetails._id);
+        return User.update({
+            _id: req.body.shared_with[0].user_id
+        },{
+            $addToSet :{
+                files: { 
+                    id: fileDetails._id
+                }
+            }
+        });
+    })
+    .then(function(){
+        return Folder.findOne({
+            $and : [
+                {_id: fileId},
+                {"shared_with.user_id" : req.body.shared_with[0].user_id}
+            ]},
+            {
+              "shared_with.$" : 1
+            }
+        )
+        .populate({path: 'shared_with.user_id', select:['name', 'email']}).lean().exec();
+    })
+    .then( function(response) {
+        response.shared_with = response.shared_with.map(function(eachUser){
+            return {
+                email: eachUser.user_id.email,
+                action: eachUser.action,
+                name: eachUser.user_id.name
+            };
+        })
+        return res.status(201).json(response);
+    })
+    .catch(function(error){
+        if( error === errorMessage.USER_WITH_EMAIL_ID_DOES_NOT_EXISTS) {
+            return res.status(400).json({
+                error: errorMessage.USER_WITH_EMAIL_ID_DOES_NOT_EXISTS
+            });
+        } else if(error === errorMessage.USER_ACCESS_REVOKED) {
+            return res.status(201).json({});
+        } else {
+            logger.error(error);
+            next(error);
+        }
+    });
 }
 
 function renameFile(req, res, next) {
@@ -201,17 +392,6 @@ router.post('/', function(req, res, next){
         fs.mkdir(fullFilePath)
         .then(function(){
             var shared_with = parentFileInfo.shared_with;
-            
-            shared_with = shared_with.filter(function(current){
-                if(current.user_id.toString() === userId ){
-                    return false;
-                }
-            });
-
-            shared_with.push({
-                user_id: userId,
-                action: 'GRANT'
-            });
 
             var folder = new Folder({
                 name: newFilePath.replace(/^\//,''),
@@ -222,29 +402,22 @@ router.post('/', function(req, res, next){
                 parent_id: parentFileInfo.id
             });
 
-            return folder.save().then(function(newFileInfo) {
-
-                newFileInfo.populate({ 
-                    path: 'modified_by',
-                    select: 'name' 
-                }).populate({ 
-                    path: 'created_by',
-                    select: 'name' 
-                })
-                .execPopulate().then(function(){
-                    logger.info("hello"); 
-                    logger.info(newFileInfo);
-                    res.status(201).json({
-                        name: fileName,
-                        _id: newFileInfo._id,
-                        created_by: newFileInfo.created_by,
-                        modified_by: newFileInfo.modified_by,
-                        shared_with: newFileInfo.shared_with,
-                        is_root: newFileInfo.is_root,
-                        parent_id: newFileInfo.parent_id
-                    });
-                })
-            });
+            return folder.save();
+        })
+        .then(function(newFileInfo){
+            return newFileInfo.populate({ 
+                path: 'modified_by',
+                select: 'name' 
+            }).populate({ 
+                path: 'created_by',
+                select: 'name' 
+            }).populate({
+                path: 'shared_with.user_id',
+                select:['name', 'email']
+            }).execPopulate();
+        })
+        .then(function(fileInfo){
+            res.status(201).json(folderDetailsToBeReturned(response));
         })
         .catch(function(err){
             if(err && err.code === 'EEXIST'){
@@ -389,5 +562,63 @@ var getFileName = function(parentPath, childPath){
    fileName = fileName.replace('\\',''); 
    return fileName;
 }
+
+/*
+Returns a promise to recursively fetch all children of a directory
+*/
+var getAllDescendants = function(rootFilePath){
+    return new Promise(function(resolve, reject) {
+        if(rootFilePath.indexOf('.') != -1){
+            resolve([]);
+            return;
+        } 
+        var subFolders = [];
+        var fsFunctionInvoked = 0;
+        var getAllSubFolders = function(parentFilePath){
+            fsFunctionInvoked += 1;
+            fs.readdir(parentFilePath)
+            .then(function(children){
+                fsFunctionInvoked -= 1;
+                children.forEach(function(childFileName){
+                    subFolders.push(path.join(parentFilePath, childFileName));
+                    // Check whether it is a directory
+                    if(childFileName.indexOf('.') == -1) {
+                        getAllSubFolders(path.join(parentFilePath, childFileName));
+                    }
+                });
+    
+                if(fsFunctionInvoked === 0){
+                    resolve(subFolders);
+                }
+            })
+            .catch(function(error){
+                reject(error);
+            });  
+        };
+        getAllSubFolders(rootFilePath);
+    });
+}
+
+
+var folderDetailsToBeReturned = function(newFileInfo) {
+    return {
+        name: path.basename(newFileInfo.name),
+        _id: newFileInfo._id,
+        created_by: newFileInfo.created_by,
+        modified_by: newFileInfo.modified_by,
+        modified_on: newFileInfo.modified_on,
+        shared_with: newFileInfo.shared_with.map(function(sharedUserList){
+            return {
+                action: sharedUserList.action,
+                name: sharedUserList.user_id.name,
+                email: sharedUserList.user_id.email,
+                user_id: sharedUserList.user_id._id
+            }
+        }),
+        is_root: newFileInfo.is_root,
+        parent_id: newFileInfo.parent_id,
+        is_dir: res.is_dir
+    };
+};
 
 module.exports = router;

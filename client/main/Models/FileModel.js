@@ -1,11 +1,16 @@
 define(["backbone", 
-        "Utils/common"], function(Backbone, Common){
+        "Utils/common",
+        "../Collection/UsersWithAcessCollection"
+    ], function(Backbone,
+        Common,
+        UsersWithAcessCollection){
     return Backbone.Model.extend({
         idAttribute : 'id',
         url : "/api/file",
         
         initialize : function(){
             this.on("backgrid:edited", this.renameFile);
+            this.on("change:shared_with", this.modifySharedWithField);
         },
         
         defaults: {
@@ -23,6 +28,14 @@ define(["backbone",
                 }
             ],
             modified_on: Date.now()
+        },
+        /*converts the shared_with field to a Backbone Collection
+        */
+        modifySharedWithField: function(model, value){
+            var listOfSharedUsers = model.get('shared_with');
+            if(!(listOfSharedUsers instanceof Backbone.Collection)) {
+                model.set('shared_with', new UsersWithAcessCollection(listOfSharedUsers), {silent: true});
+            }
         },
 
         /**Checks whether a filename represents a folder or a file
@@ -72,14 +85,8 @@ define(["backbone",
 
             var url = '/api/file/' + this.get('_id');
 
-            $.ajax({
-                url : url,
-                type: 'PUT',
-                data: JSON.stringify({
-                    name: this.get('name')
-                }),
-                contentType: 'application/json',
-                dataType: 'json'
+            Backbone.syncModified('PUT', url, {
+                name: this.get('name')
             })
             .then(_.bind(function(response){
                 this.set(response);
@@ -93,7 +100,7 @@ define(["backbone",
         },
 
         createFile(url, callback) {
-            this.sync('create', this)
+            Backbone.syncModified('POST', url, this)
             .then(_.bind(function(response){
                 this.set(response);
                 callback(null);
@@ -105,15 +112,45 @@ define(["backbone",
         },
 
         deleteFile(callback) {
-            var oldUrl = this.url;
-            this.url += '/' + this.get('_id');
-            this.sync('delete', this)
+            var url = this.url + '/' + this.get('_id');
+            Backbone.syncModified('DELETE', url, this)
             .then(function(response){
-                this.url = oldUrl;
                 callback(null);
             })
             .catch(function(error){
-                this.url = oldUrl;
+                callback(error);
+            })
+        },
+
+        provideAccess(userDetails, callback) {
+            var url = this.url + '/' + this.get('_id');
+            Backbone.syncModified('PUT', url, {
+                shared_with: [{
+                    email: userDetails[0].value,
+                    action: [userDetails[1].value]
+                }]
+            })
+            .then(function(response){
+                callback(null, response);
+            })
+            .catch(function(error){
+                callback(error);
+            })
+        },
+
+        removeUserAccess(userDetails, callback) {
+            var url = this.url + '/' + this.get('_id');
+            Backbone.syncModified('PUT', url, {
+                removeUserAccess: true,
+                shared_with: [{
+                    email: userDetails.get('email'),
+                    action: userDetails.get('action')
+                }]
+            })
+            .then(function(response){
+                callback(null, response);
+            })
+            .catch(function(error){
                 callback(error);
             })
         }

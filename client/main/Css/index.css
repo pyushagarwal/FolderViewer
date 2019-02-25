@@ -29,9 +29,30 @@
     background:lightcoral;
 }
 
-#content-pane{
+#center-pane{
     flex-grow: 5;
+    display: flex;
+    flex-direction: column;
+}
+
+#content-pane{
+    height: auto;
     height: inherit;
+    overflow-y: scroll;
+    flex-grow: 8;
+}
+
+#content-pane input[type=checkbox]{
+    width: 15px;
+    height: 20px;
+}
+
+#uploads_pane {
+    flex-grow: 2;
+}
+
+#uploads_pane td:first-child {
+    width: 30%;
 }
 
 #actions-pane{
@@ -51,6 +72,7 @@
     flex-direction: row;
     justify-content: space-around;
 }
+
 /* 
 #share_form > input {
     flex-grow: 4;

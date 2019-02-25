@@ -8,5 +8,7 @@ module.exports = {
     BAD_REQUEST: 'Bad request',
     MONGO_ERROR_CODE : {
         'DUPLICATE_KEY' : 11000
-    }
+    },
+    USER_WITH_EMAIL_ID_DOES_NOT_EXISTS: "User with email id does not exists",
+    USER_ACCESS_REVOKED: "user access revoked"
 }

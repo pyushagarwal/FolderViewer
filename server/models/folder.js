@@ -48,6 +48,11 @@ var folderSchema = new Schema({
     parent_id: {
         type: Schema.Types.ObjectId,
         ref: 'Folder'
+    },
+    
+    is_dir: {
+        type: Boolean,
+        default: true
     }
 });
 

@@ -1,9 +1,10 @@
 define(['backbone',
     '../languageConstants.js',
     '../Models/FileModel',
-    'Views/ShareView'
+    'Views/ShareView',
+    'Views/UploadModal'
 ], 
-function(Backbone, languageConstants, FileModel, ShareView){
+function(Backbone, languageConstants, FileModel, ShareView, UploadModal){
     return Backbone.View.extend({
         initialize: function(backgrid){
             this.grid = backgrid
@@ -35,7 +36,7 @@ function(Backbone, languageConstants, FileModel, ShareView){
 
                 this.grid.body.rows.forEach( function(backgridRow){
                     if(backgridRow.model === selectedModelsArray[0]){
-                        backgridRow.cells[3].enterEditMode();
+                        backgridRow.cells[2].enterEditMode();
                         window.event_bus.trigger('fileEdit', backgridRow);
                     }
                 })
@@ -48,7 +49,7 @@ function(Backbone, languageConstants, FileModel, ShareView){
                 this.grid.collection.add(file, {at: 0});
                 this.grid.body.rows.forEach( function(backgridRow){
                     if(backgridRow.model === file){
-                        backgridRow.cells[3].enterEditMode();
+                        backgridRow.cells[2].enterEditMode();
                         window.event_bus.trigger('fileEdit', backgridRow);
                     }
                 });
@@ -80,20 +81,6 @@ function(Backbone, languageConstants, FileModel, ShareView){
                         alert(JSON.stringify(error));
                     }
                 }, this));
-
-                // this.grid.body.rows.forEach(function(backgridRow){
-                //     if(backgridRow.model === selectedModelsArray[0]){
-                //         backgridRow.model.deleteFile(function(error){
-                //             if(!error){
-                //                 backgridRow.remove();
-                //                 app.grid.collection.remove(backgridRow.model);
-                //                 showActions();
-                //             } else {
-                //                 alert(JSON.stringify(error));
-                //             }
-                //         });
-                //     }
-                // });
             }
 
             else if(action === 'share') {
@@ -101,6 +88,11 @@ function(Backbone, languageConstants, FileModel, ShareView){
                 shareView = new ShareView();
                 shareView.selectedModel = selectedModelsArray[0];
                 this.$el.append(shareView.render().el);
+            }
+
+            else if(action === 'upload') {
+                var uploadModal = new UploadModal();
+                this.$el.append(uploadModal.render().el);
             }
         },
 
@@ -121,10 +113,8 @@ function(Backbone, languageConstants, FileModel, ShareView){
 
             selectedModelsCollection.forEach(function(model){
                 var idOfCurrentUser = document.cookie.split(';')[0].split('=')[1];
-                var userPermission = _.find(model.get('shared_with'), function(permission){
-                    return permission.user_id._id === idOfCurrentUser; 
-                });
-                var action = userPermission.action[0];
+                var userPermission = model.get('shared_with').find({user_id: idOfCurrentUser});
+                var action = userPermission.get('action')[0];
                 cumulativeAction = Math.min(this.ACTIONS[action], cumulativeAction);
             }, this);
 
@@ -142,7 +132,7 @@ function(Backbone, languageConstants, FileModel, ShareView){
             /*If the root folder has permission to add folder and upload,then show it */
             if(this.ACTIONS[app.currentFolder.permission] >= 1){
                 $ul.append(`<a ${attributes} data-action="add"  >${languageConstants.ADD_FOLDER}</a>`);
-                $ul.append(`<a ${attributes} > ${languageConstants.UPLOAD}</a>`);
+                $ul.append(`<a ${attributes} data-action="upload"> ${languageConstants.UPLOAD}</a>`);
                 if(selectedModelsCollection.size() === 1){
                     $ul.append(`<a ${attributes}  data-action="rename"> ${languageConstants.RENAME}</a>`);
                 }

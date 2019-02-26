@@ -27,7 +27,8 @@ define(["backbone",
                     user_id: ""
                 }
             ],
-            modified_on: Date.now()
+            modified_on: Date.now(),
+            is_dir: true
         },
         /*converts the shared_with field to a Backbone Collection
         */
@@ -43,13 +44,13 @@ define(["backbone",
         * @returns A boolean value 
         */
         isAFile : function (filename) {
-            var filename = this.get("name") || "";
-            var fileExtension =  filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
-            if(fileExtension){
-                return true;
+            // var filename = this.get("name") || "";
+            // var fileExtension =  filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+            if(this.get('is_dir')){
+                return false;
             }
             else{
-                return false;   
+                return true;   
             }
         },
 

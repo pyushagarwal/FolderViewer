@@ -12,7 +12,6 @@ var fs = require('fs-extra');
 var config = PropertiesReader('server.ini');
 
 var logger = require('./configurelog')(config.get('LOG_LEVEL'));
-
 mongoose.connection = (function(){
   var MONGOOSE_OPTIONS = {
       auto_reconnect: true,
@@ -114,7 +113,6 @@ app.use('/api/auth', require('./routes/auth'));
 
 app.use('/api/user', require('./routes/user'));
 app.use('/api/file', isAuthenticated ,require('./routes/folder'));
-app.use('/api/upload', require('./routes/upload'));
 
 
 app.get('/api/session', function(req, res){

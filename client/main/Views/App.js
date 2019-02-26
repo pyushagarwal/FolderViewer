@@ -7,6 +7,7 @@ define(['backbone',
         'backgrid-select-all',
         'Views/ActionView',
         'Views/UploadListView',
+        'Views/LeftPaneLinksView',
         '../Models/FileModel'
     ], 
     function(Backbone, 
@@ -18,6 +19,7 @@ define(['backbone',
             BackgridSelectAll,
             ActionView,
             UploadListView,
+            LeftPaneLinksView,
             FileModel
         ){
     
@@ -37,6 +39,8 @@ define(['backbone',
             this.fileCollection = new FileCollection();
             this.createGrid();
             this.actionView = new ActionView(this.grid);
+            this.leftPaneLinksView =  new LeftPaneLinksView();
+            this.uploadListView = new UploadListView();
         },
 
         createGrid : function(){
@@ -217,7 +221,6 @@ define(['backbone',
                 
 
             this.$el.append(this.grid.render().el);
-            this.uploadListView = new UploadListView();
         }
     })
 });

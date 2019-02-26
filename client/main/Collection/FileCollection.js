@@ -7,30 +7,6 @@ define(["backbone",
         //This can be placed in CONFIG
 
         currentId : 1,
-        
-        fetchData : function(url){
-            Backbone.syncModified('GET', url)
-            .then(_.bind(function(response){
-                
-                this.reset(); 
-                this.add(response.files);
-                
-                app.currentFolder = {
-                    name : response.name,
-                    _id: response.id,
-                    parent_id: response.parent_id,
-                    is_root: response.is_root,
-                    permission: response.permission
-                }
-
-                window.event_bus.trigger("rowSelected");
-
-            }, this))
-            .catch(function(error){
-                alert(JSON.stringify(error));
-                console.log(error);
-            });
-        },
 
         initialize : function(){
             this.listenTo(window.event_bus, "fetchFolderContents", this.fetchFolderContents);
@@ -64,22 +40,56 @@ define(["backbone",
         /**Fetch the contents of a folder
         *@param fileModel model
         */
-        fetchFolderContents : function(fileModel){
+        fetchFolderContents : function(fileId, shared){
             this.currentId = 1;
-            var fileId;
-            if(fileModel){
-                fileId = fileModel.get('_id');
+            var partToAppend = '';
+            if(fileId){
+                partToAppend = fileId;
             }
-            // var newFragment = this.createURL(Backbone.history.fragment, fileId);
+            else if(shared) {
+                partToAppend = 'shared';
+            }
             
             /*Update the fragment url with the path of the folder
             trigger:false does not trigger the backbone route 
             */
-            // router.navigate(newUrl, {trigger: false});
-               
+            var url = this.createURL(app.getApiUrl(), partToAppend);
+
             app.grid.clearSelectedModels();
-            var newUrl = this.createURL(app.getApiUrl(), fileId);
-            this.fetchData(newUrl);
+            Backbone.syncModified('GET', url)
+            .then(_.bind(function(response){
+                
+                this.reset(); 
+                this.add(response.files.filter(function(each){
+                    return !each.is_root;
+                }));
+                
+                if(shared) {
+                    app.currentFolder = {
+                        name : '',
+                        _id: '',
+                        parent_id: '',
+                        is_root: true,
+                        permission: ["READ"]
+                    }
+                } else {
+                    app.currentFolder = {
+                        name : response.name,
+                        _id: response.id,
+                        parent_id: response.parent_id,
+                        is_root: response.is_root,
+                        permission: response.permission
+                    }
+                }
+               
+
+                window.event_bus.trigger("rowSelected");
+
+            }, this))
+            .catch(function(error){
+                alert(JSON.stringify(error));
+                console.log(error);
+            });
         }
 
     })

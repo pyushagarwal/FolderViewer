@@ -30,7 +30,8 @@ router.post('/:id/upload', function(req, res, next){
             modified_by: userId,
             shared_with: req.shared_with,
             is_root: false,
-            parent_id: parentFileId
+            parent_id: parentFileId,
+            is_dir: false
         });
         return folderModel.save();;
     })
@@ -71,6 +72,13 @@ router.post('/:id/upload', function(req, res, next){
         if(error && error.code == 11000){
             res.status(400).json({error : errorMessage.FILE_NAME_ALREAY_EXISTS});
         }
+        else if(error instanceof Error && error.message.indexOf('Request aborted') != -1) {
+            logger.info('File uploading terminated by client');
+            folderModel.remove();
+            res.status(400).json({
+                error: errorMessage.FILE_UPLOAD_STOPPED_BY_CLIENT
+            });
+        }
         else {
             next(error);
         }
@@ -98,7 +106,7 @@ router.get('/shared', function(req, res, next) {
     })
     .then(function(response) {
         res.status(200).json({
-            files: folderDetailsToBeReturned(response)  
+            files: response.map(folderDetailsToBeReturned)  
         });
     })
     .catch(next);
@@ -323,7 +331,6 @@ function grantPermissions(req, res, next){
         } else if(error === errorMessage.USER_ACCESS_REVOKED) {
             return res.status(201).json({});
         } else {
-            logger.error(error);
             next(error);
         }
     });
@@ -417,7 +424,7 @@ router.post('/', function(req, res, next){
             }).execPopulate();
         })
         .then(function(fileInfo){
-            res.status(201).json(folderDetailsToBeReturned(response));
+            res.status(201).json(folderDetailsToBeReturned(fileInfo));
         })
         .catch(function(err){
             if(err && err.code === 'EEXIST'){
@@ -469,11 +476,11 @@ router.use(function(err, req, res, next){
                 error: errorMessage.FORBIDDEN_RESOURCE
             })
         } else {
-            logger.error(err);
-            res.status(500).send({
+            logger.error(err.message + " " + err.stack);
+            res.status(500).json({
                 error: {
                     message: err.message,
-                    stacktrace: err.stacktrace
+                    stacktrace: err.stack
                 }
             });
         }
@@ -617,7 +624,7 @@ var folderDetailsToBeReturned = function(newFileInfo) {
         }),
         is_root: newFileInfo.is_root,
         parent_id: newFileInfo.parent_id,
-        is_dir: res.is_dir
+        is_dir: newFileInfo.is_dir
     };
 };
 

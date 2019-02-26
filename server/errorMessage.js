@@ -10,5 +10,6 @@ module.exports = {
         'DUPLICATE_KEY' : 11000
     },
     USER_WITH_EMAIL_ID_DOES_NOT_EXISTS: "User with email id does not exists",
-    USER_ACCESS_REVOKED: "user access revoked"
+    USER_ACCESS_REVOKED: "user access revoked",
+    FILE_UPLOAD_STOPPED_BY_CLIENT: "file uploading was stopped by client"
 }

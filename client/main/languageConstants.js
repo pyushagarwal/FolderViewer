@@ -8,6 +8,8 @@ define([], function(){
         DOWNLOAD: 'Download',
         WRITE: 'Write',
         READ: 'Read',
-        GRANT: 'Grant'
+        GRANT: 'Grant',
+        MY_FOLDERS: 'Home',
+        SHARED: 'Shared With Me'
     };
 });

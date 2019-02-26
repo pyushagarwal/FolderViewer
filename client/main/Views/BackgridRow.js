@@ -36,7 +36,8 @@ function(
                 e.stopPropagation();
             }else{
                 if (!this.model.isAFile()){
-                    this.model.collection.fetchFolderContents(this.model);
+                    router.navigate(this.model.get('_id'), {trigger: true});
+                    // this.model.collection.fetchFolderContents(this.model);
                 }
             }
         }

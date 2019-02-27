@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <title> Folder Viewer </title>
+        <link rel="stylesheet" type="text/css" href="Css/index.css"/>
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/backgrid.css">
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/backgrid-select-all.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/backbone.modal.css">
+        <link rel="stylesheet" type="text/css" href="../Vendor/Css/backbone.modal.theme.css">
+        <script data-main="main.js" src="../Vendor/Scripts/require.js"></script>
+    </head>
+    <body>
+        <div id="main-container">
+            <div id="head-container">
+                <h4 id="user_name_header">piyush</h4>
+                <h2 id="software_header">Folder Viewer</h2>
+                <div id="logout_header">
+                    <a class="badge badge-light" href="../api/auth/logout">Sign Out</a>
+                </div>
+            </div>
+            <div id="body-container">  
+                <div id="left-pane">
+                    <ul class="list-group">
+                        <!-- <a class="list-group-item">My Folders</a>
+                        <a class="list-group-item">Shared With Me</a>
+                        <li class="list-group-item">Trash</li>  -->
+                    </ul>
+                </div>
+                <div id="center-pane">
+                    <nav class="navbar navbar-light" id= "folder-heading-nav-bar"style="background-color: #e3f2fd;" id="folder-heading">
+                        <div class="navbar-brand" id="folder-name" ></div>
+                    </nav>
+                    <div id="content-pane">
+                    </div>
+                    <div id="uploads_pane">
+                        <!-- <h4 align="center">Uploads</h4> -->
+                    </div>
+                </div>
+                <div id="actions-pane">
+                    <ul class="list-group">
+                        <li class="list-group-item">Add Folder</li>
+                        <li class="list-group-item">Upload</li>
+                        <li class="list-group-item">Share</li>
+                        <li class="list-group-item">Download</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

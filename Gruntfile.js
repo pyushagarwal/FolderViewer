@@ -5,7 +5,7 @@ module.exports = function(grunt){
             install : {
                 options:{
                     copy: true,
-                    targetDir: './Vendor',
+                    targetDir: './client/Vendor',
                     layout: function(type, component, source){
                         console.log(source);
                         if (source.endsWith(".js")) {
@@ -24,7 +24,7 @@ module.exports = function(grunt){
                     install: true,
                     verbose: false,
                     prune: false,
-                    cleanTargetDir: true,
+                    cleanTargetDir: false,
                     cleanBowerDir: false,
                     bowerOptions: {}
                 }

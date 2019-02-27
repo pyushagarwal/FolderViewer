@@ -20,27 +20,37 @@
     "backbone": "^1.3.3",
     "requirejs": "^2.3.5",
     "text": "requirejs-text#^2.0.15",
-    "bootstrap": "^3.0.0",
+    "bootstrap": "^4.0.0",
     "jquery": "3.3.1",
-    "bbgrid": "https://github.com/direct-fuel-injection/bbGrid.git#0.9.1pre"
+    "bbgrid": "https://github.com/direct-fuel-injection/bbGrid.git#0.9.1pre",
+    "moment": "^2.22.2",
+    "components-font-awesome": "^5.0.6",
+    "backgrid-select-all": "^0.3.5",
+    "backbone-forms": "^0.14.1",
+    "backbone-modal":"latest"
   },
-  "exportsOverride":{
-    "bootstrap":{
+  "exportsOverride": {
+    "bootstrap": {
       "main": [
-          "./dist/css/*",
-          "./dist/js/*",
-          "./dist/fonts/*"
-        ]
+        "./dist/css/*",
+        "./dist/js/*",
+        "./dist/fonts/*"
+      ]
     },
-    "bbgrid":{
+    "backgrid": {
       "main": [
-        "./*.js",
-        "./*.css"]
+        "lib/backgrid.css"
+      ]
+    },
+    "backbone-forms":{
+      "main": [
+        "distribution.amd/backbone-forms.js"
+      ]
     }
   },
-  "comments":{
+  "comments": {
     "dependencies": {
-      "bbGrid" : "1.0.0"
-    } 
+      "bbGrid": "1.0.0"
+    }
   }
 }

@@ -1,0 +1,103 @@
+#main-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height:100%;
+    /* background: yellow; */
+}
+
+#head-container{
+    flex-grow: 2;
+    background: lightblue;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+}
+
+#head-container #user_name_header{
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+#head-container #software_header{
+    flex-grow: 5;
+    display: flex;
+    justify-content: center;
+}
+#head-container #logout_header{
+    flex-grow: 1;
+    color: black;
+}
+#body-container{
+    flex-grow: 18;
+    /* background: lightseagreen; */
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#left-pane{
+    flex-grow: 1;
+    height: inherit;
+    background:lightcoral;
+}
+
+#center-pane{
+    flex-grow: 5;
+    display: flex;
+    flex-direction: column;
+}
+
+#folder-heading-nav-bar{
+    flex-grow: 0.25;
+    min-height: 15px;
+}
+#content-pane{
+    height: auto;
+    height: inherit;
+    overflow-y: scroll;
+    flex-grow: 8;
+}
+
+#content-pane input[type=checkbox]{
+    width: 15px;
+    height: 20px;
+}
+
+#uploads_pane {
+    flex-grow: 2;
+}
+
+#uploads_pane td:first-child {
+    width: 30%;
+}
+
+#actions-pane{
+    flex-grow: 2;
+    height: inherit;
+    background:lightcoral;
+}
+
+.list-group .list-group-item{
+    text-align: center;
+}
+.list-group {
+    margin: 10px;
+}
+#share_form {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+/* 
+#share_form > input {
+    flex-grow: 4;
+}
+#share_form > select {
+    flex-grow: 3;
+}
+#share_form > button {
+    flex-grow: 2;
+} */

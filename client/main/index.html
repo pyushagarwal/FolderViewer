@@ -13,7 +13,11 @@
     <body>
         <div id="main-container">
             <div id="head-container">
-                <h2>Folder Viewer<h2>
+                <h4 id="user_name_header">piyush</h4>
+                <h2 id="software_header">Folder Viewer</h2>
+                <div id="logout_header">
+                    <a class="badge badge-light" href="../api/auth/logout">Sign Out</a>
+                </div>
             </div>
             <div id="body-container">  
                 <div id="left-pane">
@@ -24,6 +28,9 @@
                     </ul>
                 </div>
                 <div id="center-pane">
+                    <nav class="navbar navbar-light" id= "folder-heading-nav-bar"style="background-color: #e3f2fd;" id="folder-heading">
+                        <div class="navbar-brand" id="folder-name" ></div>
+                    </nav>
                     <div id="content-pane">
                     </div>
                     <div id="uploads_pane">

@@ -12,11 +12,25 @@
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    /* justify-content: center; */
 }
 
+#head-container #user_name_header{
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+#head-container #software_header{
+    flex-grow: 5;
+    display: flex;
+    justify-content: center;
+}
+#head-container #logout_header{
+    flex-grow: 1;
+    color: black;
+}
 #body-container{
-    flex-grow: 8;
+    flex-grow: 18;
     /* background: lightseagreen; */
     width: 100%;
     display: flex;
@@ -35,6 +49,10 @@
     flex-direction: column;
 }
 
+#folder-heading-nav-bar{
+    flex-grow: 0.25;
+    min-height: 15px;
+}
 #content-pane{
     height: auto;
     height: inherit;

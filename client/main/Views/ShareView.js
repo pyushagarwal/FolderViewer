@@ -10,7 +10,7 @@ function(Backbone,
     BackGrid,
     LanguageConstants){
     return Backbone.Modal.extend({
-        template: _.template(ShareDialogTemplate, {READ: 'read'}),
+        template: _.template(ShareDialogTemplate),
         cancelEl: '.bbm-button',
         onRender: function() {
             this.usersWithAccess = this.selectedModel.get('shared_with');
@@ -94,6 +94,7 @@ function(Backbone,
                 collection : this.usersWithAccess
             });
             this.$el.find('#shared_user_list').append(this.grid.render().el);
+            this.$el.find('.bbm-modal__title').html(this.selectedModel.get('name'));
         },
 
         events: {

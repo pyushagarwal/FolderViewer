@@ -44,6 +44,7 @@ define(['backbone',
                 this.user.login().then(function(respBody, success, response){
                     if(response.status == 200){
                         document.cookie = `user_id=${respBody.user_id};path=/`;
+                        document.cookie = `user_name=${respBody.user_name};path=/`;
                         window.location = window.location.toString().split('/').slice(0,3).join('/') + "/main";
                     }
                 }).catch(_.bind(function(error){

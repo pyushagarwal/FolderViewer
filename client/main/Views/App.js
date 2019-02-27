@@ -8,6 +8,7 @@ define(['backbone',
         'Views/ActionView',
         'Views/UploadListView',
         'Views/LeftPaneLinksView',
+        'Views/NavBarView',
         '../Models/FileModel'
     ], 
     function(Backbone, 
@@ -20,6 +21,7 @@ define(['backbone',
             ActionView,
             UploadListView,
             LeftPaneLinksView,
+            NavBarView,
             FileModel
         ){
     
@@ -41,6 +43,7 @@ define(['backbone',
             this.actionView = new ActionView(this.grid);
             this.leftPaneLinksView =  new LeftPaneLinksView();
             this.uploadListView = new UploadListView();
+            this.navBarView = new NavBarView();
         },
 
         createGrid : function(){
@@ -190,13 +193,13 @@ define(['backbone',
                         }
                     }),
                 },
-                {
-                    name: "", // The key of the model attribute
-                    label: "", // The name to display in the header
-                    editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
-                    // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
-                    cell: BarIconView
-                }, 
+                // {
+                //     name: "", // The key of the model attribute
+                //     label: "", // The name to display in the header
+                //     editable: false, // By default every cell in a column is editable, but *ID* shouldn't be
+                //     // Defines a cell type, and ID is displayed as an integer without the ',' separating 1000s.
+                //     cell: BarIconView
+                // }, 
             ];
             
             this.grid = new BackGrid.Grid({

@@ -20,15 +20,14 @@ function(
                 this.$el.css('cursor','default');
             }
             //add a bar font;
-            this.cells[this.cells.length-1].setRowViewObject(this);
-            this.cells[this.cells.length-1].$el.html(_.template(BarDropDownTemplate));
+            // this.cells[this.cells.length-1].setRowViewObject(this);
+            // this.cells[this.cells.length-1].$el.html(_.template(BarDropDownTemplate));
 
         },
 
         onMouseLeave(e){
-            // console.log('mouseleave triggered');
             this.$el.css('cursor','');
-            this.cells[this.cells.length-1].$el.html('');
+            // this.cells[this.cells.length-1].$el.html('');
         },
 
         onClick(e){

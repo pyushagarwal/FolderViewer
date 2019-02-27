@@ -119,6 +119,10 @@ app.get('/api/session', function(req, res){
   res.status(200).send(Object.keys(app));
 });
 
+app.use('/', function(req, res){
+  res.redirect('/main');
+});
+
 var shutdownMongooseConnection = function() {
   mongoose.connection.close().then(function(){
     logger.info('Mongo db connection closed');

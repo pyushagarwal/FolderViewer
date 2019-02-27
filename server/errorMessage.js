@@ -11,5 +11,6 @@ module.exports = {
     },
     USER_WITH_EMAIL_ID_DOES_NOT_EXISTS: "User with email id does not exists",
     USER_ACCESS_REVOKED: "user access revoked",
-    FILE_UPLOAD_STOPPED_BY_CLIENT: "file uploading was stopped by client"
+    FILE_UPLOAD_STOPPED_BY_CLIENT: "file uploading was stopped by client",
+    ROOT_PERMISSION_MODIFY_ERROR: "Root directory permissions cannot be changed"
 }

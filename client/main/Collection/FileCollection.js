@@ -81,8 +81,7 @@ define(["backbone",
                         permission: response.permission
                     }
                 }
-               
-
+                app.navBarView.changeFolderHeading();
                 window.event_bus.trigger("rowSelected");
 
             }, this))

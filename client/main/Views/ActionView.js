@@ -26,8 +26,13 @@ function(Backbone, languageConstants, FileModel, ShareView, UploadModal){
         *@param e JqueryEventObject
          */
         performAction: function(e) {
-            e.preventDefault();
             var action = e.target.dataset.action;
+            if(action === 'download') {
+                return;
+            }
+            
+            e.preventDefault();
+
             if(action === "rename") {
                 var selectedModelsArray = this.grid.getSelectedModels();
                 if(selectedModelsArray.length !== 1){
@@ -139,7 +144,13 @@ function(Backbone, languageConstants, FileModel, ShareView, UploadModal){
             }
 
             if(cumulativeAction >= 0 && selectedModelsCollection.size() == 1){
-                $ul.append(`<a ${attributes} data-action="download">${languageConstants.DOWNLOAD}</a>`);    
+                var selectedModel = selectedModelsCollection.at(0);
+                if(selectedModel.isAFile()){
+                    var href = selectedModel.url + '/' + selectedModel.get('_id');
+                    var $linkObject = $(`<a ${attributes} data-action="download">${languageConstants.DOWNLOAD}</a>`);
+                    $linkObject.attr('href', href);
+                    $ul.append($linkObject);   
+                } 
             }
             if(cumulativeAction >= 2 && selectedModelsCollection.size() == 1){
                 $ul.append(`<a ${attributes} data-action="delete" >${languageConstants.DELETE}</a>`);    

@@ -112,7 +112,7 @@ router.get('/shared', function(req, res, next) {
     .catch(next);
 });
 
-/*Retrieve contents of a folder*/
+/*Serve a static file and Retrieve contents of a folder*/
 router.get('/:id?',function(req, res, next){
     var userId = req.user;
     var fileId = req.params.id;
@@ -127,12 +127,16 @@ router.get('/:id?',function(req, res, next){
                     }
             },
             parent_id: 1,
-            is_root: 1
+            is_root: 1,
+            is_dir: 1
         }
         return userHasAccess(fileId, req.user, "READ", res, fieldsToBeReturned);
     })
     .then(function(fileInfo){
         var fullFilePath = path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name);
+        if(!fileInfo.is_dir){
+            return res.download(fullFilePath);
+        }
         /* withFileTypes option is supported in node 10*/
         fs.readdir(fullFilePath, {withFileTypes: true})
         .then(function(files){  
@@ -149,7 +153,7 @@ router.get('/:id?',function(req, res, next){
         .then(function(response) {
             res.status(200).json({
                 id: fileInfo.id,
-                name: fileInfo.name,
+                name: path.basename(fileInfo.name),
                 permission: fileInfo.shared_with[0].action,
                 parent_id: fileInfo.parent_id,
                 is_root: fileInfo.is_root,
@@ -188,9 +192,12 @@ function grantPermissions(req, res, next){
     var userId = req.user;
     var descendants = [];
     var fileDetails;
-    userHasAccess(fileId, req.user, "GRANT", res)
+    userHasAccess(fileId, req.user, "GRANT", res, {parent_id: 1})
     .then(function(fileInfo){
         fileDetails = fileInfo;
+        if(fileDetails.is_root){
+            throw Error(errorMessage.ROOT_PERMISSION_MODIFY_ERROR);
+        }
         return getAllDescendants(path.join(req.app.get('DATA_DIRECTORY'), fileInfo.name));
     })
     .then(function(allDescendants){
@@ -199,6 +206,7 @@ function grantPermissions(req, res, next){
         });
 
         descendants.push(fileDetails.name);
+        logger.info(descendants);
 
         var emailOfUsers = req.body.shared_with.map(user => {
             return user.email;
@@ -249,7 +257,7 @@ function grantPermissions(req, res, next){
     .then(function(){
         return Folder.find({
             name: {
-                $in: [descendants]
+                $in: descendants
             }
         },{
             _id: 1
@@ -292,7 +300,11 @@ function grantPermissions(req, res, next){
     .then(function(){
         console.log("203 userid ", req.body.shared_with[0].user_id, " fileid", fileDetails._id);
         return User.update({
-            _id: req.body.shared_with[0].user_id
+            $and:[{
+                _id: req.body.shared_with[0].user_id
+            },{
+                "files.id": { $ne: fileDetails.parent_id }
+            }]
         },{
             $addToSet :{
                 files: { 
@@ -330,6 +342,10 @@ function grantPermissions(req, res, next){
             });
         } else if(error === errorMessage.USER_ACCESS_REVOKED) {
             return res.status(201).json({});
+        } else if(error instanceof Error && error.message === errorMessage.ROOT_PERMISSION_MODIFY_ERROR) {
+            return res.status(400).json({
+                error: errorMessage.ROOT_PERMISSION_MODIFY_ERROR
+            });
         } else {
             next(error);
         }
@@ -356,12 +372,21 @@ function renameFile(req, res, next) {
         fs.move(oldFilePath, newFilePath)
         .then(function(){
             return Folder.update({
-                _id: fileInfo._id
+                _id: fileInfo._id,
             }, {
-                name: newFileName
+                name: newFileName,
+                modified_by: userId,
+                modified_on: Date.now()
             })
         })
-        .then( () => res.status(200).json({"success" : true}))
+        .then(function(){
+            return Folder.findOne({
+                _id: fileInfo._id,
+            })
+            .populate({path: 'modified_by', select: 'name' })
+            .populate({path: 'shared_with.user_id', select:['name', 'email']}).lean().exec();
+        })
+        .then( (response) => res.status(200).json(folderDetailsToBeReturned(response)))
         .catch( function(err){
             if(err.message.indexOf("dest already exists") != -1){
                 res.status(400).json({

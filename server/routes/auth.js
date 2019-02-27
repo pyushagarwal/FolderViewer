@@ -59,11 +59,17 @@ router.post('/login', function(req, res, next){
             return res.status(200).send({
                 status : 200,
                 message : 'loggedins',
-                user_id: user._id
+                user_id: user._id,
+                user_name: user.name
             });
         });
 
     })(req, res, next);
+});
+
+router.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/login');
 });
 
 //console.log('auth initialized');

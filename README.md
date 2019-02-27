@@ -21,10 +21,11 @@ A registered user could perform the following functionalities:
  
  
  ### To Do
- - Expose UI to modify user details like password reset.
+ - Expose UI to modify user details and reset password.
  - Currently, the session key is stored in the server memory. A redis cache could be used for persistence.
  - Provide copy, cut and move functionality.
  - Update the test suite.
+ - Increase the maximum supported file size for uploads. Currently, it is 200 MB.
  
  
 ### Installation
@@ -45,5 +46,11 @@ To start the server run the following.
  npm install
  npm start
  ```
+ ### Screenshots
  
+<div>
+<img src="Screeshots/main.png" alt="drawing"/>
+ <br>
+<img src="Screeshots/share_window.png" alt="drawing" />
+<div>
  
